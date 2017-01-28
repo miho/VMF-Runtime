@@ -19,7 +19,10 @@ public interface VMF {
     Content content();
     
     /**
-     * 
+     * Returns the changes applied to this object.
+     * @return the changes applied to this object
      */
     Changes changes();
+    
+    
 }
