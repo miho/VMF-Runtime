@@ -9,4 +9,10 @@ public interface VObject extends ObservableObject {
      * @return VMF related functionality
      */
     VMF vmf();
+    
+    /**
+     * Returns a deep clone of this object.
+     * @return a deep clone of this object
+     */
+    VObject clone();
 }
