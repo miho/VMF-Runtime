@@ -15,4 +15,10 @@ public interface VObject extends ObservableObject {
      * @return a deep clone of this object
      */
     VObject clone();
+    
+    /**
+     * Returns a read-only wrapper of this object.
+     * @return a read-only wrapper of this object
+     */
+    VObject asReadOnly();
 }

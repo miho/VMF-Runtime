@@ -55,5 +55,10 @@ public interface VObjectInternal extends VObject {
      * or collections that contain model instances.
      */
     public int[] _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes();
+    
+    
+    default boolean _vmf_isReadOnly() {
+        return false;
+    }
 
 }

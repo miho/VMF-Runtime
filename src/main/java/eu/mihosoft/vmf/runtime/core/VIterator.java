@@ -13,16 +13,18 @@ import java.util.Stack;
 
 /**
  * Iterator that an iterates over the specified object graph.
- * 
+ *
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
 @SuppressWarnings("deprecation")
 public class VIterator implements Iterator<VObject> {
 
     private final Iterator<VObjectInternal> iterator;
+    private final boolean asReadOnly;
 
-    private VIterator(Iterator<VObjectInternal> iterator) {
+    private VIterator(Iterator<VObjectInternal> iterator, boolean asReadOnly) {
         this.iterator = iterator;
+        this.asReadOnly = asReadOnly;
     }
 
     @Override
@@ -32,16 +34,37 @@ public class VIterator implements Iterator<VObject> {
 
     @Override
     public VObject next() {
-        return iterator.next();
+        if (asReadOnly) {
+            VObject result = iterator.next();
+            if (result != null) {
+                result = result.asReadOnly();
+            }
+            return result;
+        } else {
+            return iterator.next();
+        }
     }
 
     /**
      * Returns an iterator that iterates over the specified object graph.
+     *
      * @param root object graph to iterate
      * @return an iterator that iterates over the specified object graph
      */
     public static VIterator of(VObject root) {
-        return new VIterator(new VMFIterator((VObjectInternal) root));
+        return new VIterator(new VMFIterator((VObjectInternal) root), false);
+    }
+
+    /**
+     * Returns a read-only iterator that iterates over the specified object
+     * graph.
+     *
+     * @param root object graph to iterate
+     * @return a read-only iterator that iterates over the specified object
+     * graph
+     */
+    public static VIterator readOnlyOf(VObject root) {
+        return new VIterator(new VMFIterator((VObjectInternal) root), true);
     }
 }
 
