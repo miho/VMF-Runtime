@@ -25,7 +25,8 @@ public class VIterator implements Iterator<VObject> {
 
     private final Iterator<eu.mihosoft.vmf.runtime.core.internal.VObjectInternal> iterator;
 
-    private VIterator(Iterator<eu.mihosoft.vmf.runtime.core.internal.VObjectInternal> iterator) {
+    private VIterator(
+            Iterator<eu.mihosoft.vmf.runtime.core.internal.VObjectInternal> iterator) {
         this.iterator = iterator;
     }
 
@@ -117,8 +118,7 @@ class VMFIterator
             first = null;
         } else {
             // obtain next element from current iterator
-            n = (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal)
-                    getCurrentIterator().next();
+            n = (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) getCurrentIterator().next();
 
             // - if element was not visited before then mark it as visited
             // - push the current iterator and create a new visitor that
@@ -132,7 +132,7 @@ class VMFIterator
                 identityMap.put(nIdentityObj, null);
                 iteratorStack.push(currentIterator);
                 currentIterator = new VMFPropertyIterator(
-                        identityMap, 
+                        identityMap,
                         (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) n);
             }
 
@@ -161,8 +161,8 @@ class VMFIterator
             return o;
         }
 
-        eu.mihosoft.vmf.runtime.core.internal.VObjectInternal n = 
-                (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) o;
+        eu.mihosoft.vmf.runtime.core.internal.VObjectInternal n
+                = (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) o;
 
         // - Read-only instances have to be unwrapped since identity
         //   is not guarantied for read-only instances
@@ -237,12 +237,12 @@ class VMFPropertyIterator implements Iterator<VObject> {
         this.object = object;
 
         if (VMFIterator.isDebug()) {
-            int numProps = 
-                    object._vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes().length;
+            int numProps
+                    = object._vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes().length;
             System.out.println(">> prop iterator for " + object.getClass());
             for (int i = 0; i < numProps; i++) {
-                int propIndex = 
-                        object._vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes()[i];
+                int propIndex
+                        = object._vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes()[i];
                 System.out.println("  --> i: " + i + ", name: "
                         + object._vmf_getPropertyNames()[propIndex]);
             }
@@ -295,8 +295,7 @@ class VMFPropertyIterator implements Iterator<VObject> {
             // iterator index
             int nextIndex = index + 1;
             int propIndex = object.
-                    _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes()
-                    [nextIndex];
+                    _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes()[nextIndex];
             Object o = object._vmf_getPropertyValueById(propIndex);
 
             // skip forward until no null element is present
