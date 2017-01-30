@@ -7,6 +7,7 @@ package eu.mihosoft.vmf.runtime.core;
 
 import eu.mihosoft.vmf.runtime.core.internal.VObjectInternal;
 import eu.mihosoft.vcollections.VList;
+
 import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.Stack;
@@ -20,11 +21,9 @@ import java.util.Stack;
 public class VIterator implements Iterator<VObject> {
 
     private final Iterator<VObjectInternal> iterator;
-    private final boolean asReadOnly;
 
-    private VIterator(Iterator<VObjectInternal> iterator, boolean asReadOnly) {
+    private VIterator(Iterator<VObjectInternal> iterator) {
         this.iterator = iterator;
-        this.asReadOnly = asReadOnly;
     }
 
     @Override
@@ -34,15 +33,7 @@ public class VIterator implements Iterator<VObject> {
 
     @Override
     public VObject next() {
-        if (asReadOnly) {
-            VObject result = iterator.next();
-            if (result != null) {
-                result = result.asReadOnly();
-            }
-            return result;
-        } else {
-            return iterator.next();
-        }
+        return iterator.next();
     }
 
     /**
@@ -52,25 +43,12 @@ public class VIterator implements Iterator<VObject> {
      * @return an iterator that iterates over the specified object graph
      */
     public static VIterator of(VObject root) {
-        return new VIterator(new VMFIterator((VObjectInternal) root), false);
-    }
-
-    /**
-     * Returns a read-only iterator that iterates over the specified object
-     * graph.
-     *
-     * @param root object graph to iterate
-     * @return a read-only iterator that iterates over the specified object
-     * graph
-     */
-    public static VIterator readOnlyOf(VObject root) {
-        return new VIterator(new VMFIterator((VObjectInternal) root), true);
+        return new VIterator(new VMFIterator((VObjectInternal) root));
     }
 }
 
 /**
  * Iterator that iterates over the specified model object graph (depth-first).
- *
  *
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
@@ -140,6 +118,7 @@ class VMFIterator implements Iterator<VObjectInternal> {
      * be used for identity equality checks. Since identity is not guarantied for
      * read-only instances, this method has to be used to unwrap read-only instances
      * before they are added to identity hashmaps and the like.
+     *
      * @param o object to unwrap
      * @return object that can be used for identity comparison
      */
@@ -147,7 +126,7 @@ class VMFIterator implements Iterator<VObjectInternal> {
 
         // nothing to do:
         // can't be a read-only instance and is definitely no model type instance
-        if(!(o instanceof VObjectInternal)) {
+        if (!(o instanceof VObjectInternal)) {
             return o;
         }
 
@@ -156,7 +135,7 @@ class VMFIterator implements Iterator<VObjectInternal> {
         // - Read-only instances have to be unwrapped since identity
         //   is not guarantied for read-only instances
         Object nIdentityObj;
-        if(n._vmf_isReadOnly()) {
+        if (n._vmf_isReadOnly()) {
             nIdentityObj = n._vmf_getMutableObject();
         } else {
             nIdentityObj = n;
@@ -214,7 +193,7 @@ class VMFPropertyIterator implements Iterator<VObject> {
      * Creates a new iterator
      *
      * @param identityMap identity map that marks already visited elements
-     * @param object model object to visit
+     * @param object      model object to visit
      */
     public VMFPropertyIterator(IdentityHashMap<Object, Object> identityMap, VObjectInternal object) {
         this.identityMap = identityMap;
