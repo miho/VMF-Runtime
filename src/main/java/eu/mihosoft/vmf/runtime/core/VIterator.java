@@ -63,6 +63,12 @@ class VMFIterator implements Iterator<eu.mihosoft.vmf.runtime.core.internal.VObj
 
     private final Stack<Iterator> iteratorStack = new Stack<>();
 
+    private static boolean DEBUG;
+
+    static boolean isDebug() {
+        return DEBUG;
+    }
+
     public VMFIterator(eu.mihosoft.vmf.runtime.core.internal.VObjectInternal root) {
         first = root;
         currentIterator = new VMFPropertyIterator(identityMap, root);
@@ -152,6 +158,9 @@ class VMFIterator implements Iterator<eu.mihosoft.vmf.runtime.core.internal.VObj
     private Iterator<VObject> getCurrentIterator() {
 
         if (currentIterator == null || !currentIterator.hasNext()) {
+            if(isDebug()) {
+                System.out.println(" --> leaving current");
+            }
             // obtain the last iterator that has been pushed
             currentIterator = iteratorStack.pop();
 
@@ -199,15 +208,32 @@ class VMFPropertyIterator implements Iterator<VObject> {
     public VMFPropertyIterator(IdentityHashMap<Object, Object> identityMap, eu.mihosoft.vmf.runtime.core.internal.VObjectInternal object) {
         this.identityMap = identityMap;
         this.object = object;
+
+        if(VMFIterator.isDebug()) {
+            int numProps = object._vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes().length;
+            System.out.println(">> prop iterator for " + object.getClass());
+            for (int i = 0; i < numProps; i++) {
+                int propIndex = object._vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes()[i];
+                System.out.println("  --> i: " + i + ", name: " + object._vmf_getPropertyNames()[propIndex]);
+            }
+
+            if (numProps == 0) {
+                System.out.println("  --> no props");
+            }
+        }
     }
 
     @Override
     public boolean hasNext() {
 
+        if(VMFIterator.isDebug()) {
+            System.out.println(" --> checking " + index);
+        }
+
         boolean hasNext;
 
         // if there's a list iterator then we get elements from the list
-        // before visiting next property elements 
+        // before visiting next property elements
         if (listIterator != null) {
             hasNext = listIterator.hasNext();
 
@@ -217,7 +243,10 @@ class VMFPropertyIterator implements Iterator<VObject> {
                 // we are done with the current list iterator
                 // skip to next
                 listIterator = null;
-                index++;
+                // index++;
+                if(VMFIterator.isDebug()) {
+                    System.out.println("  --> leaving list, next is " + (index + 1));
+                }
             }
         }
 
@@ -231,7 +260,7 @@ class VMFPropertyIterator implements Iterator<VObject> {
         // null element or an already visited element
         if (hasNext) {
 
-            // fetch next property element without increasing the current 
+            // fetch next property element without increasing the current
             // iterator index
             int nextIndex = index + 1;
             int propIndex = object.
@@ -297,10 +326,17 @@ class VMFPropertyIterator implements Iterator<VObject> {
 
         // if list iterator is present, we return the list elements
         if (listIterator != null) {
+            if(VMFIterator.isDebug()) {
+                System.out.println("  --> using list at " + index);
+            }
             return listIterator.next();
         }
 
         index++;
+
+        if(VMFIterator.isDebug()) {
+            System.out.println("  --> returning " + index);
+        }
 
         int propIndex = object._vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes()[index];
         Object o = object._vmf_getPropertyValueById(propIndex);
@@ -316,6 +352,9 @@ class VMFPropertyIterator implements Iterator<VObject> {
                     filter(e ->
                             !identityMap.containsKey(
                                     VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e))).iterator();
+            if(VMFIterator.isDebug()) {
+                System.out.println("  --> switching to list at " + index);
+            }
             o = listIterator.next();
         }
 
