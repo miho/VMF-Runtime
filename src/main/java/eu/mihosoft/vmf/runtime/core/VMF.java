@@ -6,7 +6,7 @@
 package eu.mihosoft.vmf.runtime.core;
 
 /**
- * VMF API. Gives as access to VMF related functionality.
+ * VMF API. Gives access to VMF related functionality.
  * 
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
@@ -22,7 +22,9 @@ public interface VMF {
      * Returns the changes applied to this object.
      * @return the changes applied to this object
      */
-    Changes changes();
+    default Changes changes() {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
     
     
 }

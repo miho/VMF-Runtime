@@ -26,5 +26,19 @@ public interface Content {
      * @return a stream that contains all elements of thie object graph
      */
     Stream<VObject> stream();
+    
+    /**
+     * Returns a deep copy of this object.
+     * @return a deep copy of this object
+     */
+    <T> T deepCopy();
+    
+    /**
+     * Returns a shallow copy of this object.
+     * @return a shallow copy of this object
+     */
+    <T> T shallowCopy();
+    
+    
 }
 
