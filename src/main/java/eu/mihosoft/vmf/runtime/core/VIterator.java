@@ -102,7 +102,7 @@ class VMFIterator implements Iterator<VObjectInternal> {
 
     @Override
     public VObjectInternal next() {
-        Object n;
+        VObjectInternal n;
 
         // visit first/root element if not visited already
         if (first != null) {
@@ -111,15 +111,18 @@ class VMFIterator implements Iterator<VObjectInternal> {
             first = null;
         } else {
             // obtain next element from current iterator
-            n = getCurrentIterator().next();
+            n = (VObjectInternal) getCurrentIterator().next();
 
             // - if element was not visited before then mark it as visited
             // - push the current iterator and create a new visitor that
             //   walks over all properties of the current element. if we are
             //   done, we will continue with the current iterator and the
             //   elements after current element (if present)
-            if (!identityMap.containsKey(n)) {
-                identityMap.put(n, null);
+            //
+            Object nIdentityObj = unwrapIfReadOnlyInstanceForIdentityCheck(n);
+
+            if (!identityMap.containsKey(nIdentityObj)) {
+                identityMap.put(nIdentityObj, null);
                 iteratorStack.push(currentIterator);
                 currentIterator = new VMFPropertyIterator(
                         identityMap, (VObjectInternal) n);
@@ -128,6 +131,37 @@ class VMFIterator implements Iterator<VObjectInternal> {
         }
 
         return (VObjectInternal) n;
+    }
+
+    /**
+     * Unwraps the mutable instance if a read-only instance has been specified.
+     * <b>Note:</b> this method is not intended to weaken the write protection of
+     * read-only instances. It is sole purpose is to return an instance that can
+     * be used for identity equality checks. Since identity is not guarantied for
+     * read-only instances, this method has to be used to unwrap read-only instances
+     * before they are added to identity hashmaps and the like.
+     * @param o object to unwrap
+     * @return object that can be used for identity comparison
+     */
+    static Object unwrapIfReadOnlyInstanceForIdentityCheck(Object o) {
+
+        // nothing to do:
+        // can't be a read-only instance and is definitely no model type instance
+        if(!(o instanceof VObjectInternal)) {
+            return o;
+        }
+
+        VObjectInternal n = (VObjectInternal) o;
+
+        // - Read-only instances have to be unwrapped since identity
+        //   is not guarantied for read-only instances
+        Object nIdentityObj;
+        if(n._vmf_isReadOnly()) {
+            nIdentityObj = n._vmf_getMutableObject();
+        } else {
+            nIdentityObj = n;
+        }
+        return nIdentityObj;
     }
 
     @Override
@@ -239,7 +273,9 @@ class VMFPropertyIterator implements Iterator<VObject> {
             if (o instanceof VList) {
 
                 boolean hasNonEmpty = ((VList) o).stream().filter(e -> e != null).
-                        filter(e -> !identityMap.containsKey(e)).count() > 0;
+                        filter(e ->
+                                !identityMap.containsKey(
+                                        VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e))).count() > 0;
 
                 if (!hasNonEmpty && index + 2 < numProperties) {
 
@@ -258,7 +294,9 @@ class VMFPropertyIterator implements Iterator<VObject> {
             }
 
             // skip forward until no already visited element is present
-            boolean alreadyVisited = identityMap.containsKey(o);
+            boolean alreadyVisited = identityMap.containsKey(
+                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o)
+            );
             if (alreadyVisited && index + 2 < numProperties) {
 
                 // skip
@@ -294,12 +332,15 @@ class VMFPropertyIterator implements Iterator<VObject> {
         // iterating through list
         if (o instanceof VList) {
             listIterator = ((VList) o).stream().filter(e -> e != null).
-                    filter(e -> !identityMap.containsKey(e)).iterator();
+                    filter(e ->
+                            !identityMap.containsKey(
+                                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e))).iterator();
             o = listIterator.next();
         }
 
         // skip already visited
-        boolean alreadyVisited = identityMap.containsKey(o);
+        boolean alreadyVisited = identityMap.
+                containsKey(VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o));
         if (alreadyVisited) {
             o = next();
         }

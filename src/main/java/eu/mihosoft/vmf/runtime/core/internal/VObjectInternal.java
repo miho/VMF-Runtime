@@ -61,4 +61,8 @@ public interface VObjectInternal extends VObject {
         return false;
     }
 
+    default VObject _vmf_getMutableObject() {
+        return this;
+    }
+
 }
