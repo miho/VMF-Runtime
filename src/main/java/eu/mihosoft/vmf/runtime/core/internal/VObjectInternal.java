@@ -51,10 +51,17 @@ public interface VObjectInternal extends VObject {
     public int[] _vmf_getIndicesOfPropertiesWithModelElementTypes();
 
     /**
-     * Returns the indices of all collection properties with model element types
+     * Returns the indices of all properties with model instances
      * or collections that contain model instances.
      */
     public int[] _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes();
+
+    /**
+     * Returns the indices of all children propeties which declare this object as
+     * parent container (opposite). This includes collection properties that
+     * contain children.
+     */
+    public int[] _vmf_getChildrenIndices();
     
     
     default boolean _vmf_isReadOnly() {
