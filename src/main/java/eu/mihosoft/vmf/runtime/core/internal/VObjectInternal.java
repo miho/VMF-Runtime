@@ -62,6 +62,14 @@ public interface VObjectInternal extends VObject {
      * contain children.
      */
     public int[] _vmf_getChildrenIndices();
+
+    /**
+     * Returns the property index of the specified property name.
+     * @param propertyName
+     * @return the property index of the specified property name or {@code -1}
+     *         if the specified property does not exist
+     */
+    public int _vmf_getPropertyIdByName(String propertyName);
     
     
     default boolean _vmf_isReadOnly() {
@@ -71,5 +79,6 @@ public interface VObjectInternal extends VObject {
     default VObject _vmf_getMutableObject() {
         return this;
     }
+
 
 }
