@@ -16,7 +16,9 @@ public interface VMF {
      * Returns the content of this object.
      * @return the content of this object
      */
-    Content content();
+    default Content content() {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
     
     /**
      * Returns the changes applied to this object.

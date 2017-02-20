@@ -22,10 +22,15 @@ public interface Changes {
     void start();
 
     /**
-     * Publishes a transaction that consists of all changes since the last
-     * {@code start()} or {@code publish()} call.
+     * Starts a new transaction.
      */
-    void publish();
+    void startTransaction();
+
+    /**
+     * Publishes a transaction that consists of all changes since the last
+     * {@code startTransaction()} or {@code publishTransaction()} call.
+     */
+    void publishTransaction();
 
     /**
      * Stops recording changes. Unpublished trnsactions will be published.
@@ -54,7 +59,7 @@ class ChangesImpl implements Changes {
             = VList.newInstance(new ArrayList<>());
     private final VList<Transaction> unmodifiableTransactions
             = VList.newInstance(Collections.unmodifiableList(transactions));
-    private int currentIndex;
+    private int currentTransactionStartIndex = 0;
 
     @Override
     public void start() {
@@ -62,17 +67,23 @@ class ChangesImpl implements Changes {
     }
 
     @Override
-    public void publish() {
-        if (currentIndex < unmodifiableAll.size()) {
-            transactions.add(() -> unmodifiableAll.subList(currentIndex, all.size()));
-            currentIndex = unmodifiableAll.size();
+    public void startTransaction() {
+        //TODO update currentTransactionStartIndex = ...
+    }
+
+    @Override
+    public void publishTransaction() {
+        if (currentTransactionStartIndex < unmodifiableAll.size()) {
+            transactions.add(() -> unmodifiableAll.subList(
+                    currentTransactionStartIndex, all.size()));
+            currentTransactionStartIndex = unmodifiableAll.size();
         }
     }
 
     @Override
     public void stop() {
-        if (currentIndex < all.size()) {
-            publish();
+        if (currentTransactionStartIndex < all.size()) {
+            publishTransaction();
         }
         // TODO unregister from model
     }
