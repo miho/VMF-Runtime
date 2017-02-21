@@ -5,6 +5,8 @@
  */
 package eu.mihosoft.vmf.runtime.core;
 
+import eu.mihosoft.vmf.runtime.core.internal.ChangesImpl;
+
 /**
  * VMF API. Gives access to VMF related functionality.
  * 
