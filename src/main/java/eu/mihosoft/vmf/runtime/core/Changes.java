@@ -7,8 +7,14 @@ package eu.mihosoft.vmf.runtime.core;
 
 import eu.mihosoft.vcollections.VList;
 import eu.mihosoft.vcollections.VMappedList;
+
+import javax.observer.Subscription;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  *
@@ -50,7 +56,7 @@ public interface Changes {
     VList<Transaction> transactions();
 }
 
-class ChangesImpl implements Changes {
+class ChangesImpl implements Changes, PropertyChangeListener {
 
     private final VList<Change> all = VList.newInstance(new ArrayList<>());
     private final VList<Change> unmodifiableAll = 
@@ -61,9 +67,40 @@ class ChangesImpl implements Changes {
             = VList.newInstance(Collections.unmodifiableList(transactions));
     private int currentTransactionStartIndex = 0;
 
+    private VObject model;
+
+    private final List<Subscription> subscriptions = new ArrayList<>();
+
+    void setModel(VObject model) {
+        this.model = model;
+    }
+
     @Override
     public void start() {
-        // TODO register with model
+        Iterator<VObject> it = model.vmf().content().iterator();
+
+        PropertyChangeListener listener = new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+
+            }
+        };
+
+        model.addPropertyChangeListener(listener);
+        subscriptions.add(()->model.removePropertyChangeListener(listener));
+
+        while(it.hasNext()) {
+            VObject obj = it.next();
+            PropertyChangeListener objListener = new PropertyChangeListener() {
+                @Override
+                public void propertyChange(PropertyChangeEvent evt) {
+
+                }
+            };
+
+            obj.addPropertyChangeListener(objListener);
+            subscriptions.add(()->obj.removePropertyChangeListener(objListener));
+        }
     }
 
     @Override
