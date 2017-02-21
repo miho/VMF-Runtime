@@ -45,18 +45,18 @@ class ListChangeImpl implements Change {
         if (!isUndoable()) return;
 
         if (evt.wasSet()) {
-            System.out.println("SET");
+//            System.out.println("SET");
             if (evt.removed().indices().length == list.size()) {
                 list.setAll(evt.removed().indices()[0], evt.removed().elements());
             }
         } else if (evt.wasAdded()) {
-            System.out.println("ADD: " + evt.added().elements().get(0));
+//            System.out.println("ADD: " + evt.added().elements().get(0));
             list.removeAll(evt.added().indices());
-            System.out.println("ADD-DONE");
+//            System.out.println("ADD-DONE");
         } else if(evt.wasRemoved()) {
-            System.out.println("REM" + evt.added().elements().get(0));
+//            System.out.println("REM" + evt.added().elements().get(0));
             list.addAll(evt.removed().indices(),evt.removed().elements());
-            System.out.println("REM-DONE");
+//            System.out.println("REM-DONE");
         }
 
     }

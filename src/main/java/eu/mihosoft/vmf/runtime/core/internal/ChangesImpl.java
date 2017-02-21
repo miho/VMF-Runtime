@@ -8,10 +8,7 @@ import eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable;
 import javax.observer.Subscription;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @Deprecated
 public class ChangesImpl implements Changes {
@@ -19,17 +16,22 @@ public class ChangesImpl implements Changes {
     private final VList<Change> all = VList.newInstance(new ArrayList<>());
     private final VList<Change> unmodifiableAll =
             VMappedList.newInstance(all, (e) -> e,
-                    (e)->{throw new UnsupportedOperationException("List modification not supported!");});
+                    (e) -> {
+                        throw new UnsupportedOperationException("List modification not supported!");
+                    });
     private final VList<Transaction> transactions
             = VList.newInstance(new ArrayList<>());
     private final VList<Transaction> unmodifiableTransactions
             = VMappedList.newInstance(transactions, (e) -> e,
-            (e)->{throw new UnsupportedOperationException("List modification not supported!");});
+            (e) -> {
+                throw new UnsupportedOperationException("List modification not supported!");
+            });
     private int currentTransactionStartIndex = 0;
 
     private VObject model;
 
     private final List<Subscription> subscriptions = new ArrayList<>();
+    private final Map<Object, Subscription> listSubscriptions = new IdentityHashMap<>();
 
     public void setModel(VObject model) {
         this.model = model;
@@ -37,7 +39,6 @@ public class ChangesImpl implements Changes {
 
     @Override
     public void start() {
-        Iterator<VObject> it = model.vmf().content().iterator();
 
         PropertyChangeListener objListener = new PropertyChangeListener() {
             @Override
@@ -46,27 +47,45 @@ public class ChangesImpl implements Changes {
                         evt.getOldValue(), evt.getNewValue());
                 all.add(c);
 
-                if(evt.getNewValue() instanceof VObject) {
+                if (evt.getNewValue() instanceof VObject) {
                     VObject newObjectToObserve = (VObject) evt.getNewValue();
-                    newObjectToObserve.removePropertyChangeListener(this);
-                    newObjectToObserve.addPropertyChangeListener(this);
-                    subscriptions.add(() -> newObjectToObserve.removePropertyChangeListener(this));
+                    registerChangeListener(newObjectToObserve, this);
                 }
 
-                if(evt.getOldValue() instanceof VObject) {
+                if (evt.getOldValue() instanceof VObject) {
                     VObject objectToRemoveFromObservation = (VObject) evt.getOldValue();
-                    objectToRemoveFromObservation.removePropertyChangeListener(this);
+                    unregisterChangeListener(objectToRemoveFromObservation, this);
                 }
             }
         };
 
+        registerChangeListener(model, objListener);
+    }
+
+    private void registerChangeListener(VObject vObj, PropertyChangeListener objListener) {
+        Iterator<VObject> it = vObj.vmf().content().iterator();
         while (it.hasNext()) {
+
             VObject obj = it.next();
 
             addListListenersToPropertiesOf(obj, objListener);
 
+            obj.removePropertyChangeListener(objListener);
             obj.addPropertyChangeListener(objListener);
+
             subscriptions.add(() -> obj.removePropertyChangeListener(objListener));
+        }
+    }
+
+    private void unregisterChangeListener(VObject vObj, PropertyChangeListener objListener) {
+        Iterator<VObject> it = vObj.vmf().content().iterator();
+        while (it.hasNext()) {
+
+            VObject obj = it.next();
+
+            removeListListenersFromPropertiesOf(obj, objListener);
+
+            obj.removePropertyChangeListener(objListener);
         }
     }
 
@@ -80,22 +99,42 @@ public class ChangesImpl implements Changes {
 
                 VList<Object> list = (VList<Object>) internalModel._vmf_getPropertyValueById(i);
 
-                subscriptions.add(list.addChangeListener(
+                Subscription subscription = list.addChangeListener(
                         (evt) -> {
                             Change c = new ListChangeImpl(object, propName, evt);
                             all.add(c);
 
-                            evt.added().elements().stream().filter(e->e instanceof VObject).
-                                    map(e->(VObject)e).forEach(v->
+                            evt.added().elements().stream().filter(e -> e instanceof VObject).
+                                    map(e -> (VObject) e).forEach(v ->
                             {
                                 v.removePropertyChangeListener(objListener);
-                                v.addPropertyChangeListener(objListener);
+                                registerChangeListener(v, objListener);
                                 subscriptions.add(() -> v.removePropertyChangeListener(objListener));
                             });
-                            evt.removed().elements().stream().filter(e->e instanceof VObject).
-                                    map(e->(VObject)e).forEach(v->v.removePropertyChangeListener(objListener));
+                            evt.removed().elements().stream().filter(e -> e instanceof VObject).
+                                    map(e -> (VObject) e).forEach(v -> unregisterChangeListener(v, objListener));
                         }
-                ));
+                );
+
+                subscriptions.add(subscription);
+                listSubscriptions.put(list, subscription);
+            }
+        }
+    }
+
+    @SuppressWarnings({"deprecation", "unchecked"})
+    private void removeListListenersFromPropertiesOf(VObject object, PropertyChangeListener objListener) {
+        VObjectInternalModifiable internalModel = (VObjectInternalModifiable) object;
+        for (int i = 0; i < internalModel._vmf_getPropertyTypes().length; i++) {
+            int type = internalModel._vmf_getPropertyTypes()[i];
+            if (type == -2) {
+                String propName = internalModel._vmf_getPropertyNames()[i];
+
+                VList<Object> list = (VList<Object>) internalModel._vmf_getPropertyValueById(i);
+
+                if (listSubscriptions.containsKey(list)) {
+                    listSubscriptions.get(list).unsubscribe();
+                }
             }
         }
     }
@@ -119,7 +158,7 @@ public class ChangesImpl implements Changes {
         if (currentTransactionStartIndex < all.size()) {
             publishTransaction();
         }
-        subscriptions.forEach(s->s.unsubscribe());
+        subscriptions.forEach(s -> s.unsubscribe());
         subscriptions.clear();
     }
 

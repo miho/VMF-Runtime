@@ -7,11 +7,7 @@ package eu.mihosoft.vmf.runtime.core;
 
 import eu.mihosoft.vcollections.VList;
 
-import java.util.IdentityHashMap;
-import java.util.Iterator;
-import java.util.Spliterator;
-import java.util.Spliterators;
-import java.util.Stack;
+import java.util.*;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
@@ -187,8 +183,13 @@ class VMFIterator
             if (isDebug()) {
                 System.out.println(" --> leaving current");
             }
-            // obtain the last iterator that has been pushed
-            currentIterator = iteratorStack.pop();
+
+            if(!iteratorStack.empty()) {
+                // obtain the last iterator that has been pushed
+                currentIterator = iteratorStack.pop();
+            } else {
+                currentIterator = Collections.emptyIterator();
+            }
 
             // if the current iterator does not have next elements and we
             // still have iterators on the stack then get the next iterator
