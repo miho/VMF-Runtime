@@ -40,6 +40,9 @@ public class ChangesImpl implements Changes {
     @Override
     public void start() {
 
+        all.clear();
+        transactions.clear();
+
         PropertyChangeListener objListener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
@@ -104,15 +107,19 @@ public class ChangesImpl implements Changes {
                             Change c = new ListChangeImpl(object, propName, evt);
                             all.add(c);
 
-                            evt.added().elements().stream().filter(e -> e instanceof VObject).
+                            evt.added().elements().stream().filter(
+                                    e -> e instanceof VObject).
                                     map(e -> (VObject) e).forEach(v ->
                             {
                                 v.removePropertyChangeListener(objListener);
                                 registerChangeListener(v, objListener);
-                                subscriptions.add(() -> v.removePropertyChangeListener(objListener));
+                                subscriptions.add(
+                                        () -> v.removePropertyChangeListener(objListener));
                             });
-                            evt.removed().elements().stream().filter(e -> e instanceof VObject).
-                                    map(e -> (VObject) e).forEach(v -> unregisterChangeListener(v, objListener));
+                            evt.removed().elements().stream().
+                                    filter(e -> e instanceof VObject).
+                                    map(e -> (VObject) e).
+                                    forEach(v -> unregisterChangeListener(v, objListener));
                         }
                 );
 
