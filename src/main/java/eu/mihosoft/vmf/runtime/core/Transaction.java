@@ -13,5 +13,9 @@ import java.util.List;
  */
 public interface Transaction {
     List<Change> changes();
+
+    boolean isUndoable();
+
+    void undo();
 }
 

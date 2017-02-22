@@ -40,8 +40,7 @@ public class ChangesImpl implements Changes {
     @Override
     public void start() {
 
-        all.clear();
-        transactions.clear();
+        clear();
 
         PropertyChangeListener objListener = new PropertyChangeListener() {
             @Override
@@ -87,7 +86,6 @@ public class ChangesImpl implements Changes {
             VObject obj = it.next();
 
             removeListListenersFromPropertiesOf(obj, objListener);
-
             obj.removePropertyChangeListener(objListener);
         }
     }
@@ -151,11 +149,47 @@ public class ChangesImpl implements Changes {
         currentTransactionStartIndex = all.size();
     }
 
+    static class TransactionImpl implements Transaction {
+        private final List<Change> changes;
+
+        public TransactionImpl(List<Change> changes) {
+            this.changes = changes;
+        }
+
+
+        @Override
+        public List<Change> changes() {
+            return this.changes;
+        }
+
+        @Override
+        public boolean isUndoable() {
+
+            for(Change c : changes) {
+                if(!c.isUndoable()) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        @Override
+        public void undo() {
+            for(int i = changes.size()-1; i > -1;i--) {
+                changes.get(i).undo();
+            }
+        }
+    }
+
     @Override
     public void publishTransaction() {
         if (currentTransactionStartIndex < unmodifiableAll.size()) {
-            transactions.add(() -> unmodifiableAll.subList(
-                    currentTransactionStartIndex, all.size()));
+            transactions.add(new TransactionImpl(
+                    unmodifiableAll.subList(
+                        currentTransactionStartIndex, all.size()
+                    ))
+            );
             currentTransactionStartIndex = unmodifiableAll.size();
         }
     }
@@ -177,6 +211,12 @@ public class ChangesImpl implements Changes {
     @Override
     public VList<Transaction> transactions() {
         return unmodifiableTransactions;
+    }
+
+    @Override
+    public void clear() {
+        all.clear();
+        transactions.clear();
     }
 
 }

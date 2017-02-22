@@ -23,7 +23,7 @@ import java.util.List;
 public interface Changes {
 
     /**
-     * Starts recording changes.
+     * Starts recording changes. Previously recorded changes will be removed (also removes transactions).
      */
     void start();
 
@@ -56,5 +56,11 @@ public interface Changes {
      * @return ll model transactions (observable collection)
      */
     VList<Transaction> transactions();
+
+
+    /**
+     * Removes all recorded changes (also removes transactions).
+     */
+    void clear();
 }
 

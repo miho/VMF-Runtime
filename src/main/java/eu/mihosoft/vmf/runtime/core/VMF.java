@@ -29,6 +29,10 @@ public interface VMF {
     default Changes changes() {
         throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
     }
+
+    default String getId() {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
     
     
 }
