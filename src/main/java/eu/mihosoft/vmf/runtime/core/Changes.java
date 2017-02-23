@@ -23,6 +23,13 @@ import java.util.List;
 public interface Changes {
 
     /**
+     * Adds the specified change listener.
+     * @param l the listener to add
+     * @return a subscription which allows to unsubscribe the specified listener
+     */
+    Subscription addListener(ChangeListener l);
+
+    /**
      * Starts recording changes. Previously recorded changes will be removed (also removes transactions).
      */
     void start();

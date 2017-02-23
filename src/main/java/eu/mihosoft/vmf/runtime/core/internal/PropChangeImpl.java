@@ -1,15 +1,18 @@
 package eu.mihosoft.vmf.runtime.core.internal;
 
+import eu.mihosoft.vcollections.VListChangeEvent;
 import eu.mihosoft.vmf.runtime.core.Change;
+import eu.mihosoft.vmf.runtime.core.PropertyChange;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Created by miho on 21.02.2017.
  */
 @Deprecated
-class PropChangeImpl implements Change {
+class PropChangeImpl implements Change, PropertyChange {
 
     private final VObject object;
     private final String propertyName;
@@ -58,5 +61,15 @@ class PropChangeImpl implements Change {
         int propId = internal._vmf_getPropertyIdByName(propertyName);
 
         return Objects.equals(newValue, internal._vmf_getPropertyValueById(propId));
+    }
+
+    @Override
+    public Optional<PropertyChange> propertyChange() {
+        return Optional.of(this);
+    }
+
+    @Override
+    public Optional<VListChangeEvent<Object>> listChange() {
+        return Optional.empty();
     }
 }

@@ -15,6 +15,7 @@ import javax.observer.collection.CollectionChangeEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author Michael Hoffer (info@michaelhoffer.de)
@@ -27,6 +28,9 @@ public interface Change {
     void undo();
 
     boolean isUndoable();
+
+    Optional<PropertyChange> propertyChange();
+    Optional<VListChangeEvent<Object>> listChange();
 }
 
 enum ChangeType {

@@ -13,6 +13,8 @@ import java.util.*;
 @Deprecated
 public class ChangesImpl implements Changes {
 
+    private final VList<ChangeListener> changeListeners = VList.newInstance(new ArrayList<>());
+
     private final VList<Change> all = VList.newInstance(new ArrayList<>());
     private final VList<Change> unmodifiableAll =
             VMappedList.newInstance(all, (e) -> e,
@@ -33,21 +35,18 @@ public class ChangesImpl implements Changes {
     private final List<Subscription> subscriptions = new ArrayList<>();
     private final Map<Object, Subscription> listSubscriptions = new IdentityHashMap<>();
 
-    public void setModel(VObject model) {
-        this.model = model;
-    }
+    private final PropertyChangeListener objListener;
 
-    @Override
-    public void start() {
+    private boolean recording;
 
-        clear();
-
-        PropertyChangeListener objListener = new PropertyChangeListener() {
+    public ChangesImpl() {
+        objListener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
                 Change c = new PropChangeImpl((VObject) evt.getSource(), evt.getPropertyName(),
                         evt.getOldValue(), evt.getNewValue());
-                all.add(c);
+
+                fireChange(c);
 
                 if (evt.getNewValue() instanceof VObject) {
                     VObject newObjectToObserve = (VObject) evt.getNewValue();
@@ -61,14 +60,50 @@ public class ChangesImpl implements Changes {
             }
         };
 
+        changeListeners.addChangeListener((evt)->{
+            if(changeListeners.isEmpty()&&!recording) {
+                System.out.println("unregister");
+                unregisterChangeListener(model,objListener);
+            } else if(!changeListeners.isEmpty()) {
+                System.out.println("register");
+                registerChangeListener(model, objListener);
+            }
+        });
+    }
+
+    private void fireChange(Change c) {
+
+        for(ChangeListener cl : changeListeners) {
+            cl.onChange(c);
+        }
+
+        if(recording) {
+            all.add(c);
+        }
+    }
+
+    public void setModel(VObject model) {
+        this.model = model;
+    }
+
+
+    @Override
+    public void start() {
+
+        clear();
+
+        recording = true;
+
         registerChangeListener(model, objListener);
     }
 
+    @SuppressWarnings("unchecked")
     private void registerChangeListener(VObject vObj, PropertyChangeListener objListener) {
+
         Iterator<VObject> it = vObj.vmf().content().iterator();
         while (it.hasNext()) {
 
-            VObject obj = it.next();
+            VObjectInternal obj = (VObjectInternal) it.next();
 
             addListListenersToPropertiesOf(obj, objListener);
 
@@ -79,11 +114,13 @@ public class ChangesImpl implements Changes {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void unregisterChangeListener(VObject vObj, PropertyChangeListener objListener) {
+
         Iterator<VObject> it = vObj.vmf().content().iterator();
         while (it.hasNext()) {
 
-            VObject obj = it.next();
+            VObjectInternal obj = (VObjectInternal) it.next();
 
             removeListListenersFromPropertiesOf(obj, objListener);
             obj.removePropertyChangeListener(objListener);
@@ -103,11 +140,12 @@ public class ChangesImpl implements Changes {
                 Subscription subscription = list.addChangeListener(
                         (evt) -> {
                             Change c = new ListChangeImpl(object, propName, evt);
-                            all.add(c);
+
+                            fireChange(c);
 
                             evt.added().elements().stream().filter(
-                                    e -> e instanceof VObject).
-                                    map(e -> (VObject) e).forEach(v ->
+                                    e -> e instanceof VObjectInternal).
+                                    map(e -> (VObjectInternal) e).forEach(v ->
                             {
                                 v.removePropertyChangeListener(objListener);
                                 registerChangeListener(v, objListener);
@@ -146,6 +184,11 @@ public class ChangesImpl implements Changes {
 
     @Override
     public void startTransaction() {
+
+        if(!recording) {
+            throw new RuntimeException("Please call 'start()' before starting a transaction.");
+        }
+
         currentTransactionStartIndex = all.size();
     }
 
@@ -201,6 +244,10 @@ public class ChangesImpl implements Changes {
         }
         subscriptions.forEach(s -> s.unsubscribe());
         subscriptions.clear();
+
+        recording = false;
+
+        unregisterChangeListener(model,objListener);
     }
 
     @Override
@@ -219,4 +266,11 @@ public class ChangesImpl implements Changes {
         transactions.clear();
     }
 
+    @Override
+    public Subscription addListener(ChangeListener l) {
+
+        changeListeners.add(l);
+
+        return ()->changeListeners.remove(l);
+    }
 }

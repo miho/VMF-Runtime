@@ -2,10 +2,13 @@ package eu.mihosoft.vmf.runtime.core.internal;
 
 import eu.mihosoft.vcollections.VList;
 import eu.mihosoft.vcollections.VListChange;
+import eu.mihosoft.vcollections.VListChangeEvent;
 import eu.mihosoft.vmf.runtime.core.Change;
+import eu.mihosoft.vmf.runtime.core.PropertyChange;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
 import javax.observer.collection.CollectionChangeEvent;
+import java.util.Optional;
 
 /**
  * Created by miho on 21.02.2017.
@@ -86,5 +89,26 @@ class ListChangeImpl implements Change {
         }
 
         return true;
+    }
+
+    @Override
+    public Optional<PropertyChange> propertyChange() {
+        return Optional.empty();
+    }
+
+    @Override
+    public Optional<VListChangeEvent<Object>> listChange() {
+        VListChangeEvent<Object> result;
+        if (evt.wasSet()) {
+            result =  VListChangeEvent.getSetEvent(evt.source(), evt.added().indices(), evt.removed().elements(), evt.added().elements());
+        } else if(evt.wasAdded()) {
+            result =   VListChangeEvent.getAddedEvent(evt.source(), evt.added().indices(), evt.added().elements());
+        } else if (evt.wasRemoved()) {
+            result =   VListChangeEvent.getRemovedEvent(evt.source(), evt.removed().indices(), evt.removed().elements());
+        } else {
+            result = null;
+        }
+
+        return Optional.ofNullable(result);
     }
 }

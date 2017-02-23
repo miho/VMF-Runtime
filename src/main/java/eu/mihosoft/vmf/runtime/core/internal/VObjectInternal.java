@@ -5,6 +5,7 @@
  */
 package eu.mihosoft.vmf.runtime.core.internal;
 
+import eu.mihosoft.vmf.runtime.core.ObservableObject;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
 /**
@@ -15,7 +16,7 @@ import eu.mihosoft.vmf.runtime.core.VObject;
  * Internal interface. Don't rely on this API.
  */
 @Deprecated
-public interface VObjectInternal extends VObject {
+public interface VObjectInternal extends VObject, ObservableObject {
 
     /**
      * Returns the type id of this class.
