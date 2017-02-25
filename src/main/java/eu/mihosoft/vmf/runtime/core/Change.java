@@ -21,21 +21,26 @@ import java.util.Optional;
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
 public interface Change {
+
     VObject object();
 
     String propertyName();
 
     void undo();
-
     boolean isUndoable();
 
     Optional<PropertyChange> propertyChange();
     Optional<VListChangeEvent<Object>> listChange();
+
+    enum ChangeType {
+        PROPERTY,
+        LIST
+    }
+
+    ChangeType getType();
+
 }
 
-enum ChangeType {
-    PROPERTY,
-    LIST
-}
+
 
 

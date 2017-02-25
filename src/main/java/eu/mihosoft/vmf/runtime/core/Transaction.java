@@ -12,6 +12,7 @@ import java.util.List;
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
 public interface Transaction {
+
     List<Change> changes();
 
     boolean isUndoable();
