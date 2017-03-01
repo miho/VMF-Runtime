@@ -16,13 +16,13 @@ import java.util.stream.Stream;
 public interface Content {
 
     /**
-     * Returns an iterator that traverses the object graph (depth first).
+     * Returns an iterator that traverses the object graph (depth object).
      * @return an iterator that traverses the object graph
      */
     Iterator<VObject> iterator();
 
     /**
-     * Returns a stream that contains all elements of thie object graph (depth first).
+     * Returns a stream that contains all elements of thie object graph (depth object).
      * @return a stream that contains all elements of thie object graph
      */
     Stream<VObject> stream();
