@@ -72,4 +72,5 @@ class PropChangeImpl implements Change, PropertyChange {
     public Optional<VListChangeEvent<Object>> listChange() {
         return Optional.empty();
     }
+
 }

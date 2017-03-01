@@ -105,6 +105,7 @@ public class ChangesImpl implements Changes {
 
             VObjectInternal obj = (VObjectInternal) it.next();
 
+            removeListListenersFromPropertiesOf(obj,objListener);
             addListListenersToPropertiesOf(obj, objListener);
 
             obj.removePropertyChangeListener(objListener);
