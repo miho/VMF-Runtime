@@ -111,4 +111,9 @@ class ListChangeImpl implements Change {
 
         return Optional.ofNullable(result);
     }
+
+    @Override
+    public ChangeType getType() {
+        return ChangeType.LIST;
+    }
 }

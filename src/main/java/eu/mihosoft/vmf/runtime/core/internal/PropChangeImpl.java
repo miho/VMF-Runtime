@@ -73,4 +73,8 @@ class PropChangeImpl implements Change, PropertyChange {
         return Optional.empty();
     }
 
+    @Override
+    public ChangeType getType() {
+        return ChangeType.PROPERTY;
+    }
 }

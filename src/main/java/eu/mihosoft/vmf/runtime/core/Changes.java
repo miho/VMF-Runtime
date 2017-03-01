@@ -64,7 +64,6 @@ public interface Changes {
      */
     VList<Transaction> transactions();
 
-
     /**
      * Removes all recorded changes (also removes transactions).
      */
