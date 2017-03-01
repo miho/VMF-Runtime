@@ -335,7 +335,7 @@ class VMFPropertyIterator implements Iterator<VObject> {
                     hasNext = hasNext();
 
                     // we have seen the future
-                    // that's why we are allowed to early exit
+                    // that's why we are allowed to exit early
                     return hasNext;
                 }
 
