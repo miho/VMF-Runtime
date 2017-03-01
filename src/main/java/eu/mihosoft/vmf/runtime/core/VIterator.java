@@ -131,16 +131,15 @@ class VMFIterator
                         identityMap,
                         (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) n);
             }
-
         }
 
-        return (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) n;
+        return n;
     }
 
     /**
      * Unwraps the mutable instance if a read-only instance has been specified.
      * <b>Note:</b> this method is not intended to weaken the write protection
-     * of read-only instances. It is sole purpose is to return an instance that
+     * of read-only instances. Its sole purpose is to return an instance that
      * can be used for identity equality checks. Since identity is not
      * guarantied for read-only instances, this method has to be used to unwrap
      * read-only instances before they are added to identity hashmaps and the
@@ -314,10 +313,10 @@ class VMFPropertyIterator implements Iterator<VObject> {
             if (o instanceof VList) {
                 @SuppressWarnings("unchecked")
                 boolean hasNonEmpty = ((VList) o).stream().filter(e -> e != null).
-                        filter(e
-                                -> !identityMap.containsKey(
-                                VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e)))
-                        .count() > 0;
+//                        filter(e -> !identityMap.containsKey(
+//                                VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e))
+//                        ).
+                        count() > 0;
 
                 if (!hasNonEmpty && index + 2 < numProperties) {
 
@@ -335,19 +334,19 @@ class VMFPropertyIterator implements Iterator<VObject> {
                 hasNext = hasNonEmpty;
             }
 
-            // skip forward until no already visited element is present
-            boolean alreadyVisited = identityMap.containsKey(
-                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o)
-            );
-            if (alreadyVisited && index + 2 < numProperties) {
-
-                // skip
-                index++;
-                hasNext = hasNext();
-
-            } else if (alreadyVisited) {
-                hasNext = false;
-            }
+//            // skip forward until no already visited element is present
+//            boolean alreadyVisited = identityMap.containsKey(
+//                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o)
+//            );
+//            if (alreadyVisited && index + 2 < numProperties) {
+//
+//                // skip
+//                index++;
+//                hasNext = hasNext();
+//
+//            } else if (alreadyVisited) {
+//                hasNext = false;
+//            }
         }
 
         return hasNext;
@@ -383,22 +382,22 @@ class VMFPropertyIterator implements Iterator<VObject> {
         // iterating through list
         if (o instanceof VList) {
             listIterator = ((VList) o).stream().filter(e -> e != null).
-                    filter(e
-                            -> !identityMap.containsKey(
-                            VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e)))
-                    .iterator();
+//                    filter(e
+//                            -> !identityMap.containsKey(
+//                            VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e))).
+                    iterator();
             if (VMFIterator.isDebug()) {
                 System.out.println("  --> switching to list at " + index);
             }
             o = listIterator.next();
         }
 
-        // skip already visited
-        boolean alreadyVisited = identityMap.
-                containsKey(VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o));
-        if (alreadyVisited) {
-            o = next();
-        }
+//        // skip already visited
+//        boolean alreadyVisited = identityMap.
+//                containsKey(VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o));
+//        if (alreadyVisited) {
+//            o = next();
+//        }
 
         return (VObject) o;
     }
