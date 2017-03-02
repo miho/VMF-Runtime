@@ -92,7 +92,11 @@ public class VIterator implements Iterator<VObject> {
          * Visits each property of each node exactly once. References of the
          * same node might be visited multiple times.
          */
-        UNIQUE_PROPERTY
+        UNIQUE_PROPERTY,
+        /**
+         * Visits the containment tree. References are completely ignored.
+         */
+        CONTAINMENT_TREE
     }
 }
 
@@ -322,10 +326,18 @@ class VMFPropertyIterator implements Iterator<VObject> {
                 }
             }
         }
+        
+        // property indices (with or without pure references)
+        int[] properties;
+        if(strategy == VIterator.IterationStrategy.CONTAINMENT_TREE) {
+            properties = object._vmf_getChildrenIndices();
+        } else {
+            properties = object.
+                _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes();
+        }
 
         // number of properties that are not external types
-        int numProperties = object.
-                _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes().length;
+        int numProperties = properties.length;
 
         hasNext = index + 1 < numProperties;
 
@@ -336,8 +348,7 @@ class VMFPropertyIterator implements Iterator<VObject> {
             // fetch next property element without increasing the current
             // iterator index
             int nextIndex = index + 1;
-            int propIndex = object.
-                    _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes()[nextIndex];
+            int propIndex = properties[nextIndex];
             Object o = object._vmf_getPropertyValueById(propIndex);
 
             // skip forward until no null element is present
@@ -360,11 +371,13 @@ class VMFPropertyIterator implements Iterator<VObject> {
                     hasNextFilter = e -> !identityMap.containsKey(
                             VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e));
                 } else {
+                    // we don't prevent multiple visits
                     hasNextFilter = e -> true;
                 }
 
                 @SuppressWarnings("unchecked")
-                boolean hasNonEmpty = ((VList<Object>) o).stream().filter(e -> e != null).
+                boolean hasNonEmpty = ((VList<Object>) o).
+                        stream().filter(e -> e != null).
                         filter(hasNextFilter).
                         count() > 0;
 
@@ -421,9 +434,17 @@ class VMFPropertyIterator implements Iterator<VObject> {
         if (VMFIterator.isDebug()) {
             System.out.println("  --> returning " + index);
         }
+        
+         // property indices (with or without pure references)
+        int[] properties;
+        if(strategy == VIterator.IterationStrategy.CONTAINMENT_TREE) {
+            properties = object._vmf_getChildrenIndices();
+        } else {
+            properties = object.
+                _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes();
+        }
 
-        int propIndex = object.
-                _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes()[index];
+        int propIndex = properties[index];
         Object o = object._vmf_getPropertyValueById(propIndex);
 
         // skip forward until no null element is present
@@ -437,6 +458,7 @@ class VMFPropertyIterator implements Iterator<VObject> {
             hasNextFilter = e -> !identityMap.containsKey(
                     VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e));
         } else {
+            // we don't prevent multiple visits
             hasNextFilter = e -> true;
         }
 
@@ -453,7 +475,8 @@ class VMFPropertyIterator implements Iterator<VObject> {
         if (strategy == VIterator.IterationStrategy.UNIQUE_NODE) {
             // skip already visited
             boolean alreadyVisited = identityMap.
-                    containsKey(VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o));
+                    containsKey(VMFIterator.
+                            unwrapIfReadOnlyInstanceForIdentityCheck(o));
             if (alreadyVisited) {
                 o = next();
             }
