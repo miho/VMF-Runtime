@@ -16,16 +16,34 @@ import java.util.stream.Stream;
 public interface Content {
 
     /**
-     * Returns an iterator that traverses the object graph (depth object).
+     * Returns an iterator that traverses the object graph (depth first)
+     * using the {@link VIterator.IterationStrategy#UNIQUE_EDGE} iteration strategy.
      * @return an iterator that traverses the object graph
      */
     Iterator<VObject> iterator();
 
     /**
-     * Returns a stream that contains all elements of thie object graph (depth object).
-     * @return a stream that contains all elements of thie object graph
+     * Returns an iterator that traverses the object graph (depth first)
+     * using the specified iteration strategy.
+     * @param strategy iteration strategy
+     * @return an iterator that traverses the object graph
+     */
+    Iterator<VObject> iterator(VIterator.IterationStrategy strategy);
+
+    /**
+     * Returns a stream that contains all elements of the object graph (depth first)
+     * using the {@link VIterator.IterationStrategy#UNIQUE_EDGE} iteration strategy.
+     * @return a stream that contains all elements of the object graph
      */
     Stream<VObject> stream();
+
+    /**
+     * Returns a stream that contains all elements of the object graph (depth first)
+     * using the specified iteration strategy.
+     * @param strategy iteration strategy
+     * @return a stream that contains all elements of the object graph
+     */
+    Stream<VObject> stream(VIterator.IterationStrategy strategy);
     
     /**
      * Returns a deep copy of this object.

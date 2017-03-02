@@ -62,10 +62,10 @@ public class ChangesImpl implements Changes {
 
         changeListeners.addChangeListener((evt)->{
             if(changeListeners.isEmpty()&&!recording) {
-                System.out.println("unregister");
+//                System.out.println("unregister");
                 unregisterChangeListener(model,objListener);
             } else if(!changeListeners.isEmpty()) {
-                System.out.println("register");
+//                System.out.println("register");
                 registerChangeListener(model, objListener);
             }
         });
@@ -100,7 +100,7 @@ public class ChangesImpl implements Changes {
     @SuppressWarnings("unchecked")
     private void registerChangeListener(VObject vObj, PropertyChangeListener objListener) {
 
-        Iterator<VObject> it = vObj.vmf().content().iterator();
+        Iterator<VObject> it = vObj.vmf().content().iterator(VIterator.IterationStrategy.UNIQUE_NODE);
         while (it.hasNext()) {
 
             VObjectInternal obj = (VObjectInternal) it.next();
@@ -118,7 +118,7 @@ public class ChangesImpl implements Changes {
     @SuppressWarnings("unchecked")
     private void unregisterChangeListener(VObject vObj, PropertyChangeListener objListener) {
 
-        Iterator<VObject> it = vObj.vmf().content().iterator();
+        Iterator<VObject> it = vObj.vmf().content().iterator(VIterator.IterationStrategy.UNIQUE_NODE);
         while (it.hasNext()) {
 
             VObjectInternal obj = (VObjectInternal) it.next();

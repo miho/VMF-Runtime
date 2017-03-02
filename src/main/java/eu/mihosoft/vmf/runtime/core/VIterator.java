@@ -50,7 +50,8 @@ public class VIterator implements Iterator<VObject> {
     }
 
     /**
-     * Returns an iterator that iterates over the specified object graph.
+     * Returns an iterator that iterates over the specified object graph using the
+     * {@link VIterator.IterationStrategy#UNIQUE_EDGE} iteration strategy.
      *
      * @param root object graph to iterate
      * @return an iterator that iterates over the specified object graph
@@ -58,8 +59,36 @@ public class VIterator implements Iterator<VObject> {
     public static VIterator of(VObject root) {
         return new VIterator(
                 new VMFIterator(
-                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root)
+                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, IterationStrategy.UNIQUE_EDGE)
         );
+    }
+
+    /**
+     * Returns an iterator that iterates over the specified object graph using the specified iteration strategy
+     *
+     * @param root object graph to iterate
+     * @param iterationStrategy iteration strategy
+     * @return an iterator that iterates over the specified object graph
+     */
+    public static VIterator of(VObject root, IterationStrategy iterationStrategy) {
+        return new VIterator(
+                new VMFIterator(
+                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, iterationStrategy)
+        );
+    }
+
+    /**
+     * Iteration strategy.
+     */
+    public enum IterationStrategy {
+        /**
+         * Visits each node exactly once. References of the same node that are encountered are not visited.
+         */
+        UNIQUE_NODE,
+        /**
+         * Visits each edge exactly once. References of the same node might be visited multiple times.
+         */
+        UNIQUE_EDGE
     }
 }
 
@@ -73,7 +102,7 @@ class VMFIterator
         implements
         Iterator<eu.mihosoft.vmf.runtime.core.internal.VObjectInternal> {
 
-    private final Map<Object, Object> identityMap
+    private final Map<IdentityEquals, Object> identityMap
             = new HashMap<>();
 
     private eu.mihosoft.vmf.runtime.core.internal.VObjectInternal first;
@@ -81,6 +110,7 @@ class VMFIterator
     private VObject lastVisited;
 
     private final Stack<Iterator> iteratorStack = new Stack<>();
+    private final VIterator.IterationStrategy iterationStrategy;
 
     private static boolean DEBUG;
 
@@ -89,9 +119,10 @@ class VMFIterator
     }
 
     public VMFIterator(
-            eu.mihosoft.vmf.runtime.core.internal.VObjectInternal root) {
+            eu.mihosoft.vmf.runtime.core.internal.VObjectInternal root, VIterator.IterationStrategy iterationStrategy) {
         first = root;
-        currentIterator = new VMFPropertyIterator(identityMap, root, lastVisited);
+        currentIterator = new VMFPropertyIterator(identityMap, root, lastVisited, iterationStrategy);
+        this.iterationStrategy = iterationStrategy;
     }
 
     @Override
@@ -111,7 +142,7 @@ class VMFIterator
         // visit object/root element if not visited already
         if (first != null) {
             n = first;
-            identityMap.put(n, null);
+            identityMap.put(IdentityEquals.newInstance(lastVisited, n, iterationStrategy), null);
             first = null;
         } else {
             // obtain next element from current iterator
@@ -125,12 +156,14 @@ class VMFIterator
             //
             Object nIdentityObj = unwrapIfReadOnlyInstanceForIdentityCheck(n);
 
-            if (!identityMap.containsKey(new EqualsPairEdge(unwrapIfReadOnlyInstanceForIdentityCheck(lastVisited), nIdentityObj))) {
-                identityMap.put(nIdentityObj, null);
+            IdentityEquals edge = IdentityEquals.newInstance(unwrapIfReadOnlyInstanceForIdentityCheck(lastVisited), nIdentityObj, iterationStrategy);
+
+            if (!identityMap.containsKey(edge)) {
+                identityMap.put(edge, null);
                 iteratorStack.push(currentIterator);
                 currentIterator = new VMFPropertyIterator(
                         identityMap,
-                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) n, lastVisited);
+                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) n, lastVisited, iterationStrategy);
             }
         }
 
@@ -228,9 +261,11 @@ class VMFPropertyIterator implements Iterator<VObject> {
     private Iterator<VObject> listIterator;
 
     // identity map that contains already visited elements
-    private final Map<Object, Object> identityMap;
+    private final Map<IdentityEquals, Object> identityMap;
 
     private VObject lastVisited;
+
+    private VIterator.IterationStrategy iterationStrategy;
 
     /**
      * Creates a new iterator
@@ -238,11 +273,13 @@ class VMFPropertyIterator implements Iterator<VObject> {
      * @param identityMap identity map that marks already visited elements
      * @param object model object to visit
      */
-    public VMFPropertyIterator(Map<Object, Object> identityMap,
-            eu.mihosoft.vmf.runtime.core.internal.VObjectInternal object, VObject lastVisited) {
+    public VMFPropertyIterator(Map<IdentityEquals, Object> identityMap,
+                               eu.mihosoft.vmf.runtime.core.internal.VObjectInternal object,
+                               VObject lastVisited, VIterator.IterationStrategy iterationStrategy) {
         this.identityMap = identityMap;
         this.object = object;
         this.lastVisited = lastVisited;
+        this.iterationStrategy = iterationStrategy;
 
         if (VMFIterator.isDebug()) {
             int numProps
@@ -321,9 +358,10 @@ class VMFPropertyIterator implements Iterator<VObject> {
             if (o instanceof VList) {
                 @SuppressWarnings("unchecked")
                 boolean hasNonEmpty = ((VList) o).stream().filter(e -> e != null).
-                        filter(e -> !identityMap.containsKey(new EqualsPairEdge(
+                        filter(e -> !identityMap.containsKey(IdentityEquals.newInstance(
                                 VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(lastVisited),
-                                VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e)
+                                VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e),
+                                iterationStrategy
                         ))
                         ).
                         count() > 0;
@@ -345,9 +383,10 @@ class VMFPropertyIterator implements Iterator<VObject> {
             }
 
             // skip forward until no already visited element is present
-            boolean alreadyVisited = identityMap.containsKey(new EqualsPairEdge(
+            boolean alreadyVisited = identityMap.containsKey(IdentityEquals.newInstance(
                     VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(lastVisited),
-                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o)
+                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o),
+                    iterationStrategy
             ));
             if (alreadyVisited && index + 2 < numProperties) {
 
@@ -394,9 +433,10 @@ class VMFPropertyIterator implements Iterator<VObject> {
         if (o instanceof VList) {
             listIterator = ((VList) o).stream().filter(e -> e != null).
                     filter(e
-                            -> !identityMap.containsKey(new EqualsPairEdge(
+                            -> !identityMap.containsKey(IdentityEquals.newInstance(
                             VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(lastVisited),
-                            VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e)
+                            VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e),
+                            iterationStrategy
                     ))).
                     iterator();
             if (VMFIterator.isDebug()) {
@@ -407,15 +447,15 @@ class VMFPropertyIterator implements Iterator<VObject> {
 
         // skip already visited
         boolean alreadyVisited = identityMap.
-                containsKey(new EqualsPairEdge(
+                containsKey(IdentityEquals.newInstance(
                         VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(lastVisited),
-                        VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o)
+                        VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(o),
+                        iterationStrategy
                 ));
         if (alreadyVisited) {
             o = next();
         }
 
-        lastVisited = (VObject) o;
         return (VObject) o;
     }
 
@@ -429,21 +469,25 @@ class VMFPropertyIterator implements Iterator<VObject> {
 /**
  * The purpose of this class is to store a pair (directed graph edge) of objects used
  * for equals(). This class's equals() method checks equality by object identity. Same
- * for hashCode() which uses identity hashes of 'object' and 'second' to compute the
+ * for hashCode() which uses identity hashes of 'first' and 'second' to compute the
  * hash.
  *
  * This class can be used in conjunction with a regular HashMap to get similar results
- * to a IdentityHashMap, except that in this case identity pairs can be used. And we
+ * to an IdentityHashMap, except that in this case identity pairs can be used. And we
  * don't have to use a map implementation that is deliberately broken by design.
  */
-class EqualsPairEdge {
+class EqualsPairEdge implements IdentityEquals{
 
-    final Object first;
-    final Object second;
+    private final Object first;
+    private final Object second;
 
-    public EqualsPairEdge(Object first, Object second) {
+    EqualsPairEdge(Object first, Object second) {
         this.first = first;
         this.second = second;
+
+//        System.out.println("----");
+//        System.out.println(" -> first:  " + first);
+//        System.out.println(" -> second: " + second);
     }
 
     @Override
@@ -477,16 +521,16 @@ class EqualsPairEdge {
 /**
  * The purpose of this class is to store an object used for equals(). This class's
  * equals() method checks equality by object identity. Same for hashCode() which
- * uses identity hashes of 'object' and 'second' to compute the hash.
+ * uses the identity hash of 'object' to compute the hash.
  *
  * This class can be used in conjunction with a regular HashMap to get similar results
- * to a IdentityHashMap, except that in this case identity pairs can be used. And we
+ * to an IdentityHashMap, except that in this case identity pairs can be used. And we
  * don't have to use a map implementation that is deliberately broken by design.
  */
-class EqualsSingle {
-    final Object object;
+class EqualsSingle implements IdentityEquals{
+    private final Object object;
 
-    public EqualsSingle(Object object) {
+    EqualsSingle(Object object) {
         this.object = object;
     }
 
@@ -513,4 +557,27 @@ class EqualsSingle {
 
         return true;
     }
+}
+
+interface IdentityEquals {
+
+    /**
+     * Creates a new identity object for equals comparison.
+     *
+     * @param first first edge node (ignored by equals single)
+     * @param second second edge node (used by equals single)
+     * @param strategy iteration strategy
+     * @return identity object
+     */
+    static IdentityEquals newInstance(Object first, Object second, VIterator.IterationStrategy strategy) {
+        switch(strategy) {
+            case UNIQUE_EDGE:
+                return new EqualsPairEdge(first,second);
+            case UNIQUE_NODE:
+                return new EqualsSingle(second);
+            default:
+                throw new IllegalArgumentException("Specified iteration type '" + strategy + "' is not supported");
+        }
+    }
+
 }
