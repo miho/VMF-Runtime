@@ -51,7 +51,7 @@ public class VIterator implements Iterator<VObject> {
 
     /**
      * Returns an iterator that iterates over the specified object graph using the
-     * {@link VIterator.IterationStrategy#UNIQUE_EDGE} iteration strategy.
+     * {@link VIterator.IterationStrategy#UNIQUE_NODE} iteration strategy.
      *
      * @param root object graph to iterate
      * @return an iterator that iterates over the specified object graph
@@ -59,7 +59,7 @@ public class VIterator implements Iterator<VObject> {
     public static VIterator of(VObject root) {
         return new VIterator(
                 new VMFIterator(
-                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, IterationStrategy.UNIQUE_EDGE)
+                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, IterationStrategy.UNIQUE_NODE)
         );
     }
 
@@ -88,7 +88,7 @@ public class VIterator implements Iterator<VObject> {
         /**
          * Visits each edge exactly once. References of the same node might be visited multiple times.
          */
-        UNIQUE_EDGE
+//        UNIQUE_EDGE
     }
 }
 
@@ -571,8 +571,8 @@ interface IdentityEquals {
      */
     static IdentityEquals newInstance(Object first, Object second, VIterator.IterationStrategy strategy) {
         switch(strategy) {
-            case UNIQUE_EDGE:
-                return new EqualsPairEdge(first,second);
+//            case UNIQUE_EDGE:
+//                return new EqualsPairEdge(first,second);
             case UNIQUE_NODE:
                 return new EqualsSingle(second);
             default:
