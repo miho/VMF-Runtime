@@ -1,7 +1,5 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+/**
+ * Don't rely on this API. Seriously, <b>don't</b> rely on it!
  */
 package eu.mihosoft.vmf.runtime.core.internal;
 
@@ -9,11 +7,9 @@ import eu.mihosoft.vmf.runtime.core.ObservableObject;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
 /**
+ * Internal interface. Don't rely on this API. Seriously, <b>don't</b> rely on it!
  *
  * @author Michael Hoffer (info@michaelhoffer.de)
- */
-/**
- * Internal interface. Don't rely on this API.
  */
 @Deprecated
 public interface VObjectInternal extends VObject, ObservableObject {
@@ -58,7 +54,7 @@ public interface VObjectInternal extends VObject, ObservableObject {
     public int[] _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes();
 
     /**
-     * Returns the indices of all children propeties which declare this object as
+     * Returns the indices of all children properties which declare this object as
      * parent container (opposite). This includes collection properties that
      * contain children.
      */
@@ -81,5 +77,11 @@ public interface VObjectInternal extends VObject, ObservableObject {
         return this;
     }
 
+    default long _vmf_getId() {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
 
+    default long _vmf_setId() {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
 }

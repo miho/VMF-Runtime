@@ -1,3 +1,6 @@
+/**
+ * Don't rely on this API. Seriously, <b>don't</b> rely on it!
+ */
 package eu.mihosoft.vmf.runtime.core.internal;
 
 import eu.mihosoft.vcollections.VList;
@@ -11,7 +14,11 @@ import javax.observer.collection.CollectionChangeEvent;
 import java.util.Optional;
 
 /**
+ * Don't rely on this API. Seriously, <b>don't</b> rely on it!
+ *
  * Created by miho on 21.02.2017.
+ *
+ * @author Michael Hoffer (info@michaelhoffer.de)
  */
 @Deprecated
 class ListChangeImpl implements Change {

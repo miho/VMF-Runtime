@@ -1,3 +1,6 @@
+/**
+ * Don't rely on this API. Seriously, <b>don't</b> rely on it!
+ */
 package eu.mihosoft.vmf.runtime.core.internal;
 
 import eu.mihosoft.vcollections.VList;
@@ -10,6 +13,11 @@ import java.beans.PropertyChangeListener;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
+/**
+ * Don't rely on this API. Seriously, <b>don't</b> rely on it!
+ *
+ * @author Michael Hoffer (info@michaelhoffer.de)
+ */
 @Deprecated
 public class ChangesImpl implements Changes {
 

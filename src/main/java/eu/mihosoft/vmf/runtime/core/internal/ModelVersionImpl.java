@@ -1,9 +1,16 @@
+/**
+ * Don't rely on this API. Seriously, <b>don't</b> rely on it!
+ */
 package eu.mihosoft.vmf.runtime.core.internal;
 
 import eu.mihosoft.vmf.runtime.core.ModelVersion;
 
 /**
+ * Don't rely on this API. Seriously, <b>don't</b> rely on it!
+ *
  * Created by miho on 03.03.17.
+ *
+ * @author Michael Hoffer (info@michaelhoffer.de)
  */
 class ModelVersionImpl implements ModelVersion {
     private final long timestamp;
