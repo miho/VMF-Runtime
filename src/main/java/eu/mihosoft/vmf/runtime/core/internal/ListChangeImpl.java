@@ -19,6 +19,7 @@ class ListChangeImpl implements Change {
     private final String propertyName;
     private final CollectionChangeEvent<Object,VList<Object>, VListChange<Object>> evt;
     private final VList list;
+    private final long timestamp;
 
     @SuppressWarnings({"deprecation", "unchecked"})
     public ListChangeImpl(VObject object, String propertyName, CollectionChangeEvent<Object,VList<Object>, VListChange<Object>> evt) {
@@ -29,6 +30,8 @@ class ListChangeImpl implements Change {
         VObjectInternalModifiable internal = (VObjectInternalModifiable) object;
         int propId = internal._vmf_getPropertyIdByName(propertyName);
         list = (VList) internal._vmf_getPropertyValueById(propId);
+
+        this.timestamp = System.nanoTime();
     }
 
     @Override
@@ -115,5 +118,10 @@ class ListChangeImpl implements Change {
     @Override
     public ChangeType getType() {
         return ChangeType.LIST;
+    }
+
+    @Override
+    public long getTimestamp() {
+        return timestamp;
     }
 }

@@ -6,16 +6,8 @@
 package eu.mihosoft.vmf.runtime.core;
 
 import eu.mihosoft.vcollections.VList;
-import eu.mihosoft.vcollections.VMappedList;
-import eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable;
 
 import javax.observer.Subscription;
-import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
 
 /**
  * @author Michael Hoffer (info@michaelhoffer.de)
@@ -24,6 +16,7 @@ public interface Changes {
 
     /**
      * Adds the specified change listener.
+     *
      * @param l the listener to add
      * @return a subscription which allows to unsubscribe the specified listener
      */
@@ -37,16 +30,16 @@ public interface Changes {
     /**
      * Starts a new transaction.
      */
-    void startTransaction();
+    void startCommand();
 
     /**
      * Publishes a transaction that consists of all changes since the last
-     * {@code startTransaction()} or {@code publishTransaction()} call.
+     * {@code startCommand()} or {@code publishTransaction()} call.
      */
     void publishTransaction();
 
     /**
-     * Stops recording changes. Unpublished trnsactions will be published.
+     * Stops recording changes. Unpublished transactions will be published.
      */
     void stop();
 
@@ -68,5 +61,19 @@ public interface Changes {
      * Removes all recorded changes (also removes transactions).
      */
     void clear();
+
+    /**
+     * Returns the model version.
+     *
+     * @return model version
+     */
+    ModelVersion modelVersion();
+
+    /**
+     * Indicates whether model versioning is enabled.
+     *
+     * @return {@code true} if model versioning is enabled; {@code false} otherwise
+     */
+    boolean isModelVersioningEnabled();
 }
 

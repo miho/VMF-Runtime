@@ -18,26 +18,72 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
+ * A model change.
+ *
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
 public interface Change {
 
+    /**
+     * Returns the object affected by this change
+     * @return the object affected by this change
+     */
     VObject object();
 
+    /**
+     * Returns the name of the property affected by this change.
+     * @return the name of the property affected by this change
+     */
     String propertyName();
 
+    /**
+     * Performs an undo operation (if possible).
+     */
     void undo();
+
+    /**
+     * Indicates whether this change can be reverted.
+     * @return {@code true} if this change can be reverted; {@code false} otherwise
+     */
     boolean isUndoable();
 
+    /**
+     * Returns the property change (optional) which exists if this change affects a single property.
+     * @return the property change (optional)
+     */
     Optional<PropertyChange> propertyChange();
+
+    /**
+     * Returns the list change (optional) which exists if this change affects a list (list elements added, removed, etc.).
+     * @return the list change (optional)
+     */
     Optional<VListChangeEvent<Object>> listChange();
 
+    /**
+     * Change Type
+     */
     enum ChangeType {
+        /**
+         * Change affects a single property.
+         */
         PROPERTY,
+        /**
+         * Change affects a list.
+         */
         LIST
     }
 
+    /**
+     * Returns the type of this change.
+     * @return the type of this change
+     */
     ChangeType getType();
+
+    /**
+     * Returns the timestamp which denotes the creation of this change.
+     * @return the timestamp which denotes the creation of this change
+     */
+    long getTimestamp();
 
 }
 

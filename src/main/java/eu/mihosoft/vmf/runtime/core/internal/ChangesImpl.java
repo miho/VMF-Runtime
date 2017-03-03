@@ -3,12 +3,12 @@ package eu.mihosoft.vmf.runtime.core.internal;
 import eu.mihosoft.vcollections.VList;
 import eu.mihosoft.vcollections.VMappedList;
 import eu.mihosoft.vmf.runtime.core.*;
-import eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable;
 
 import javax.observer.Subscription;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Deprecated
 public class ChangesImpl implements Changes {
@@ -37,7 +37,15 @@ public class ChangesImpl implements Changes {
 
     private final PropertyChangeListener objListener;
 
+    private boolean modelVersioningEnabled;
+    private Subscription modelVersioningSubscription;
+
     private boolean recording;
+
+    private long timestamp;
+    private final AtomicLong modelVersionNumber = new AtomicLong(0);
+
+    private ModelVersion modelVersion = new ModelVersionImpl(System.currentTimeMillis(),0);
 
     public ChangesImpl() {
         objListener = new PropertyChangeListener() {
@@ -95,6 +103,8 @@ public class ChangesImpl implements Changes {
         recording = true;
 
         registerChangeListener(model, objListener);
+
+        enableModelVersioning();
     }
 
     @SuppressWarnings("unchecked")
@@ -184,7 +194,7 @@ public class ChangesImpl implements Changes {
     }
 
     @Override
-    public void startTransaction() {
+    public void startCommand() {
 
         if(!recording) {
             throw new RuntimeException("Please call 'start()' before starting a transaction.");
@@ -249,6 +259,8 @@ public class ChangesImpl implements Changes {
         recording = false;
 
         unregisterChangeListener(model,objListener);
+
+        disableModelVersioning();
     }
 
     @Override
@@ -273,5 +285,48 @@ public class ChangesImpl implements Changes {
         changeListeners.add(l);
 
         return ()->changeListeners.remove(l);
+    }
+
+    @Override
+    public ModelVersion modelVersion() {
+        return modelVersion;
+    }
+
+    public void enableModelVersioning() {
+
+        // unsubscribe previous listener
+        if(modelVersioningSubscription !=null) {
+            modelVersioningSubscription.unsubscribe();
+            modelVersioningSubscription = null;
+        }
+
+        // register new listener
+        modelVersioningSubscription = addListener((change)-> {
+            timestamp = change.getTimestamp();
+            modelVersionNumber.getAndIncrement();
+
+            modelVersion = new ModelVersionImpl(timestamp, modelVersionNumber.get());
+        });
+
+        this.modelVersioningEnabled = true;
+    }
+
+    public void disableModelVersioning() {
+
+        if(recording) {
+            throw new RuntimeException("Cannot disable model versioning during change recording." +
+                    " Call stop() before disabling model versioning.");
+        }
+
+        if(modelVersioningSubscription !=null) {
+            modelVersioningSubscription.unsubscribe();
+            modelVersioningSubscription = null;
+        }
+
+        this.modelVersioningEnabled = false;
+    }
+
+    public boolean isModelVersioningEnabled() {
+        return modelVersioningEnabled;
     }
 }

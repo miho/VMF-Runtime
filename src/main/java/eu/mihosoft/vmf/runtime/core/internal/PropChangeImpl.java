@@ -18,12 +18,15 @@ class PropChangeImpl implements Change, PropertyChange {
     private final String propertyName;
     private final Object oldValue;
     private final Object newValue;
+    private final long timestamp;
 
     PropChangeImpl(VObject object, String propertyName, Object oldValue, Object newValue) {
         this.object = object;
         this.propertyName = propertyName;
         this.oldValue = oldValue;
         this.newValue = newValue;
+
+        this.timestamp = System.nanoTime();
     }
 
     public VObject object() {
@@ -76,5 +79,10 @@ class PropChangeImpl implements Change, PropertyChange {
     @Override
     public ChangeType getType() {
         return ChangeType.PROPERTY;
+    }
+
+    @Override
+    public long getTimestamp() {
+        return timestamp;
     }
 }
