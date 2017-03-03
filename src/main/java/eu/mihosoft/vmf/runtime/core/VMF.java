@@ -30,7 +30,20 @@ public interface VMF {
         throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
     }
 
-    default String getId() {
+    /**
+     * TODO implement uniqueness guarantees.
+     *
+     * Returns the id of this object that has been assigned by VMF. The id can be used to identify and query objects
+     * within an object graph.
+     *
+     * <p>
+     *     <b>Note:</b> the uniqueness of this id is only guaranteed within an object graph. For objects that are
+     *     referenced from multiple object graphs, VMF will assign an id which is unique among those graphs.
+     * </p>
+     *
+     * @return the id of this object that has been assigned by VMF
+     */
+    default long id() {
         throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
     }
     

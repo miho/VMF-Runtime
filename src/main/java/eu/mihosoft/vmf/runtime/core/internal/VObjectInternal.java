@@ -6,6 +6,8 @@ package eu.mihosoft.vmf.runtime.core.internal;
 import eu.mihosoft.vmf.runtime.core.ObservableObject;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Internal interface. Don't rely on this API. Seriously, <b>don't</b> rely on it!
  *
@@ -81,7 +83,11 @@ public interface VObjectInternal extends VObject, ObservableObject {
         throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
     }
 
-    default long _vmf_setId() {
-        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    static long newId() {
+        return currentId.getAndIncrement();
     }
+
+    static final AtomicLong currentId = new AtomicLong(0);
+
+
 }

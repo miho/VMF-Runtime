@@ -27,4 +27,8 @@ public interface VObjectInternalModifiable extends VObjectInternal {
         ChangesImpl cImpl = (ChangesImpl) c;
         cImpl.setModel(this);
     }
+
+    default void _vmf_setId(long id) {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
 }

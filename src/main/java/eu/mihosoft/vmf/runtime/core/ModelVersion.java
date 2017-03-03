@@ -6,7 +6,7 @@ package eu.mihosoft.vmf.runtime.core;
  * Created by miho on 03.03.17.
  *
  * @author Michael Hoffer (info@michaelhoffer.de)
- * 
+ *
  */
 public interface ModelVersion {
 
