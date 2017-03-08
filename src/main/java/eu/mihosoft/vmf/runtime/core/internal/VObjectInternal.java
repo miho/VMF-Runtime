@@ -90,7 +90,13 @@ public interface VObjectInternal extends VObject, ObservableObject {
 
     static final AtomicLong currentId = new AtomicLong(0);
 
+    void _vmf_findUniqueId();
+
     List<VObject> _vmf_referencedBy();
 
     List<VObject> _vmf_references();
+
+    void _vmf_enableUniqueIdUpdate();
+    void _vmf_disableUniqueIdUpdate();
+    boolean _vmf_isUniqueIdUpdateEnabled();
 }
