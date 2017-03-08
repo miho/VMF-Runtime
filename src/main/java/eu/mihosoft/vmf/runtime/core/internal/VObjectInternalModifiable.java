@@ -38,12 +38,16 @@ public interface VObjectInternalModifiable extends VObjectInternal {
     @Override
     default void _vmf_findUniqueId() {
 
+        // finding unique id causes overhead
+        // therefore, it can be disabled (e.g. in clone())
         if(!_vmf_isUniqueIdUpdateEnabled()) {
             return;
         }
 
         boolean idIsUnique = true;
 
+        // if we find our current id in the object graphs that reference us we
+        // need to start the search for a unique id
         for(VObject vObj : _vmf_referencedBy()) {
             if(vObj.vmf().content().stream().filter(vo->vo!=this).mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == _vmf_getId())) {
                 idIsUnique = false;
@@ -51,26 +55,30 @@ public interface VObjectInternalModifiable extends VObjectInternal {
             }
         }
 
+        // if the current id is not used we stop the search
         if(idIsUnique) return;
 
-        System.out.println("unique-id: num-referenced="+_vmf_referencedBy().size());
 
         long uniqueId = 0;
 
+        // find the smallest id that is larger than all ids in the graphs that reference us
         for(VObject vObj : _vmf_referencedBy()) {
             long localMax = vObj.vmf().content().stream().mapToLong(vo->vo.vmf().id()).max().orElseGet(()->0) + 1;
-            System.out.println("local-max: " + localMax);
             uniqueId = Math.max(localMax, uniqueId);
         }
 
+        // check whether the previously selected id is unique within our own graph
         final long finalUniqueId = uniqueId;
         idIsUnique = vmf().content().stream().mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == finalUniqueId);
 
+        // if id is not unique within our own graph we use the maximum id of our own graph +1  and
+        // the previously selected id
         if(!idIsUnique) {
             long localMax = vmf().content().stream().filter(vo->vo!=this).mapToLong(vo -> vo.vmf().id()).max().orElseGet(()->0) + 1;
             uniqueId = Math.max(localMax, uniqueId);
         }
 
+        // finally, set the unique id
         _vmf_setId(uniqueId);
     }
 }
