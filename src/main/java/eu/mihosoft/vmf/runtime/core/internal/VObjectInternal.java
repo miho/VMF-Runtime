@@ -6,6 +6,7 @@ package eu.mihosoft.vmf.runtime.core.internal;
 import eu.mihosoft.vmf.runtime.core.ObservableObject;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 /**
@@ -89,5 +90,7 @@ public interface VObjectInternal extends VObject, ObservableObject {
 
     static final AtomicLong currentId = new AtomicLong(0);
 
+    List<VObject> _vmf_referencedBy();
 
+    List<VObject> _vmf_references();
 }

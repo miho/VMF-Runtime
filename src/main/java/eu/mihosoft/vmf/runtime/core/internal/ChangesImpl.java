@@ -202,7 +202,7 @@ public class ChangesImpl implements Changes {
     }
 
     @Override
-    public void startCommand() {
+    public void startTransaction() {
 
         if(!recording) {
             throw new RuntimeException("Please call 'start()' before starting a transaction.");

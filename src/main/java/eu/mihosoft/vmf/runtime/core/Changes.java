@@ -30,11 +30,11 @@ public interface Changes {
     /**
      * Starts a new transaction.
      */
-    void startCommand();
+    void startTransaction();
 
     /**
      * Publishes a transaction that consists of all changes since the last
-     * {@code startCommand()} or {@code publishTransaction()} call.
+     * {@code startTransaction()} or {@code publishTransaction()} call.
      */
     void publishTransaction();
 
