@@ -45,7 +45,7 @@ public interface VObjectInternalModifiable extends VObjectInternal {
         boolean idIsUnique = true;
 
         for(VObject vObj : _vmf_referencedBy()) {
-            if(vObj.vmf().content().stream().mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == _vmf_getId())) {
+            if(vObj.vmf().content().stream().filter(vo->vo!=this).mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == _vmf_getId())) {
                 idIsUnique = false;
                 break;
             }
@@ -58,7 +58,7 @@ public interface VObjectInternalModifiable extends VObjectInternal {
         long uniqueId = 0;
 
         for(VObject vObj : _vmf_referencedBy()) {
-            long localMax = vObj.vmf().content().stream().mapToLong(vo->vo.vmf().id()).max().getAsLong() + 1;
+            long localMax = vObj.vmf().content().stream().mapToLong(vo->vo.vmf().id()).max().orElseGet(()->0) + 1;
             System.out.println("local-max: " + localMax);
             uniqueId = Math.max(localMax, uniqueId);
         }
@@ -67,7 +67,7 @@ public interface VObjectInternalModifiable extends VObjectInternal {
         idIsUnique = vmf().content().stream().mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == finalUniqueId);
 
         if(!idIsUnique) {
-            long localMax = vmf().content().stream().mapToLong(vo -> vo.vmf().id()).max().getAsLong() + 1;
+            long localMax = vmf().content().stream().filter(vo->vo!=this).mapToLong(vo -> vo.vmf().id()).max().orElseGet(()->0) + 1;
             uniqueId = Math.max(localMax, uniqueId);
         }
 
