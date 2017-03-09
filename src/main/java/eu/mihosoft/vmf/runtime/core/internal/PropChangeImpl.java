@@ -33,7 +33,7 @@ class PropChangeImpl implements Change, PropertyChange {
         this.oldValue = oldValue;
         this.newValue = newValue;
 
-        this.timestamp = System.nanoTime();
+        this.timestamp = System.currentTimeMillis();
     }
 
     public VObject object() {
@@ -54,7 +54,6 @@ class PropChangeImpl implements Change, PropertyChange {
 
     @SuppressWarnings("deprecation")
     public void undo() {
-
         if (!isUndoable()) return;
 
         VObjectInternalModifiable internal = (VObjectInternalModifiable) object;

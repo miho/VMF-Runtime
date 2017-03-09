@@ -97,6 +97,14 @@ public interface VObjectInternal extends VObject, ObservableObject {
     }
 
     /**
+     * Returns the previous id of this instance.
+     * @return the previous id of this instance
+     */
+    default long _vmf_getPrevId() {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
+
+    /**
      * Requests a new id.
      * @return a new id
      */

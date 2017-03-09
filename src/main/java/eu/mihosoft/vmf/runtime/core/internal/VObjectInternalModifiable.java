@@ -4,6 +4,7 @@
 package eu.mihosoft.vmf.runtime.core.internal;
 
 import eu.mihosoft.vmf.runtime.core.Changes;
+import eu.mihosoft.vmf.runtime.core.VIterator;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
 import java.util.Objects;
@@ -35,6 +36,11 @@ public interface VObjectInternalModifiable extends VObjectInternal {
         throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
     }
 
+
+    default void _vmf_resetPrevId() {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
+
     @Override
     default void _vmf_findUniqueId() {
 
@@ -44,41 +50,59 @@ public interface VObjectInternalModifiable extends VObjectInternal {
             return;
         }
 
-        boolean idIsUnique = true;
+        // set unique id
+        _vmf_setId(VObjectInternal.newId());
 
-        // if we find our current id in the object graphs that reference us we
-        // need to start the search for a unique id
-        for(VObject vObj : _vmf_referencedBy()) {
-            if(vObj.vmf().content().stream().filter(vo->vo!=this).mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == _vmf_getId())) {
-                idIsUnique = false;
-                break;
-            }
-        }
+        vmf().content().stream(VIterator.IterationStrategy.UNIQUE_NODE)
+                .filter(vo->vo!=this).forEach(v->
+                ((VObjectInternalModifiable)((VObjectInternal)v)._vmf_getMutableObject()).
+                        _vmf_findUniqueId());
 
-        // if the current id is not used we stop the search
-        if(idIsUnique) return;
-
-
-        long uniqueId = 0;
-
-        // find the smallest id that is larger than all ids in the graphs that reference us
-        for(VObject vObj : _vmf_referencedBy()) {
-            long localMax = vObj.vmf().content().stream().mapToLong(vo->vo.vmf().id()).max().orElseGet(()->0) + 1;
-            uniqueId = Math.max(localMax, uniqueId);
-        }
-
-        // check whether the previously selected id is unique within our own graph
-        final long finalUniqueId = uniqueId;
-        idIsUnique = vmf().content().stream().mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == finalUniqueId);
-
-        // if id is not unique within our own graph we use the maximum id of our own graph +1  and
-        // the previously selected id
-        if(!idIsUnique) {
-            long localMax = vmf().content().stream().filter(vo->vo!=this).mapToLong(vo -> vo.vmf().id()).max().orElseGet(()->0) + 1;
-            uniqueId = Math.max(localMax, uniqueId);
-        }
-
-        // finally, set the unique id
-        _vmf_setId(uniqueId);
+//        boolean idIsUnique = true;
+//
+//        // if we find our current id in the object graphs that reference us we
+//        // need to start the search for a unique id
+//        for(VObject vObj : _vmf_referencedBy()) {
+//            if(vObj.vmf().content().stream(VIterator.IterationStrategy.UNIQUE_NODE).
+//                    filter(vo->vo!=this).mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == _vmf_getId())) {
+//                idIsUnique = false;
+//                break;
+//            }
+//        }
+//
+//        // if the current id is not used we stop the search
+//        if(idIsUnique) return;
+//
+//
+//        long uniqueId = 0;
+//
+//        // find the smallest id that is larger than all ids in the graphs that reference us
+//        for(VObject vObj : _vmf_referencedBy()) {
+//            long localMax = vObj.vmf().content().stream(VIterator.IterationStrategy.UNIQUE_NODE)
+//                    .mapToLong(vo->vo.vmf().id()).max().orElseGet(()->0) + 1;
+//            uniqueId = Math.max(localMax, uniqueId);
+//        }
+//
+//        // check whether the previously selected id is unique within our own graph
+//        final long finalUniqueId = uniqueId;
+//        idIsUnique = vmf().content().stream(VIterator.IterationStrategy.UNIQUE_NODE)
+//                .mapToLong(vo->vo.vmf().id()).anyMatch(lId-> lId == finalUniqueId);
+//
+//        // if id is not unique within our own graph we use the maximum id of our own graph +1  and
+//        // the previously selected id
+//        if(!idIsUnique) {
+//            long localMax = vmf().content().stream(VIterator.IterationStrategy.UNIQUE_NODE)
+//                    .filter(vo->vo!=this).mapToLong(vo -> vo.vmf().id()).max().orElseGet(()->0) + 1;
+//            uniqueId = Math.max(localMax, uniqueId);
+//        }
+//
+//        // finally, set the unique id
+//        _vmf_setId(uniqueId);
+//
+//        // and update id's of our sub graph
+//        vmf().content().stream(VIterator.IterationStrategy.UNIQUE_NODE)
+//                .filter(vo->vo!=this).forEach(v->
+//                ((VObjectInternalModifiable)((VObjectInternal)v)._vmf_getMutableObject()).
+//                        _vmf_findUniqueId());
     }
 }

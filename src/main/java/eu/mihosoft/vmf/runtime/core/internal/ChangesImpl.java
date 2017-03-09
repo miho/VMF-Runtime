@@ -53,47 +53,74 @@ public class ChangesImpl implements Changes {
     private long timestamp;
     private final AtomicLong modelVersionNumber = new AtomicLong(0);
 
-    private ModelVersion modelVersion = new ModelVersionImpl(System.currentTimeMillis(),0);
+    private ModelVersion modelVersion = new ModelVersionImpl(System.currentTimeMillis(), 0);
 
     public ChangesImpl() {
         objListener = new PropertyChangeListener() {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
-                Change c = new PropChangeImpl((VObject) evt.getSource(), evt.getPropertyName(),
-                        evt.getOldValue(), evt.getNewValue());
 
-                fireChange(c);
+                if ("_vmf_id".equals(evt.getPropertyName())) {
+                    fireIdChangeIfPrevIdIsPresent((VObject) evt.getSource());
 
-                if (evt.getNewValue() instanceof VObject) {
-                    VObject newObjectToObserve = (VObject) evt.getNewValue();
-                    registerChangeListener(newObjectToObserve, this);
+                } else {
+                    Change c = new PropChangeImpl((VObject) evt.getSource(), evt.getPropertyName(),
+                            evt.getOldValue(), evt.getNewValue());
+
+                    fireChange(c);
+
+                    if (evt.getNewValue() instanceof VObject) {
+                        VObject newObjectToObserve = (VObject) evt.getNewValue();
+                        registerChangeListener(newObjectToObserve, this);
+
+
+                        fireIdChangeIfPrevIdIsPresent(newObjectToObserve);
+                    }
+
+                    if (evt.getOldValue() instanceof VObject) {
+                        VObject objectToRemoveFromObservation = (VObject) evt.getOldValue();
+                        unregisterChangeListener(objectToRemoveFromObservation, this);
+                    }
                 }
 
-                if (evt.getOldValue() instanceof VObject) {
-                    VObject objectToRemoveFromObservation = (VObject) evt.getOldValue();
-                    unregisterChangeListener(objectToRemoveFromObservation, this);
-                }
             }
         };
 
-        changeListeners.addChangeListener((evt)->{
-            if(changeListeners.isEmpty()&&!recording) {
+        changeListeners.addChangeListener((evt) -> {
+            if (changeListeners.isEmpty() && !recording) {
 //                System.out.println("unregister");
-                unregisterChangeListener(model,objListener);
-            } else if(!changeListeners.isEmpty()) {
+                unregisterChangeListener(model, objListener);
+            } else if (!changeListeners.isEmpty()) {
 //                System.out.println("register");
                 registerChangeListener(model, objListener);
             }
         });
     }
 
+    private void fireIdChangeIfPrevIdIsPresent(VObject source) {
+        // fire id change if prevId is present
+        if(source instanceof VObjectInternal) {
+            VObjectInternal vObjInternal = (VObjectInternal) source;
+            if(vObjInternal._vmf_getPrevId()> -1) {
+
+                Change idChange = new IdChangeImpl((VObject) source,
+                        vObjInternal._vmf_getPrevId(), vObjInternal._vmf_getId());
+
+                fireChange(idChange);
+
+                // clear prevId
+                ((VObjectInternalModifiable)vObjInternal._vmf_getMutableObject())._vmf_resetPrevId();
+            }
+        }
+    }
+
     private void fireChange(Change c) {
 
-        for(ChangeListener cl : changeListeners) {
+        for (ChangeListener cl : changeListeners) {
             cl.onChange(c);
         }
 
-        if(recording) {
+        if (recording && c.getType()!= Change.ChangeType.ID) {
             all.add(c);
         }
     }
@@ -123,7 +150,7 @@ public class ChangesImpl implements Changes {
 
             VObjectInternal obj = (VObjectInternal) it.next();
 
-            removeListListenersFromPropertiesOf(obj,objListener);
+            removeListListenersFromPropertiesOf(obj, objListener);
             addListListenersToPropertiesOf(obj, objListener);
 
             obj.removePropertyChangeListener(objListener);
@@ -166,6 +193,7 @@ public class ChangesImpl implements Changes {
                                     e -> e instanceof VObjectInternal).
                                     map(e -> (VObjectInternal) e).forEach(v ->
                             {
+                                fireIdChangeIfPrevIdIsPresent(v);
                                 v.removePropertyChangeListener(objListener);
                                 registerChangeListener(v, objListener);
                                 subscriptions.add(
@@ -204,7 +232,7 @@ public class ChangesImpl implements Changes {
     @Override
     public void startTransaction() {
 
-        if(!recording) {
+        if (!recording) {
             throw new RuntimeException("Please call 'start()' before starting a transaction.");
         }
 
@@ -227,8 +255,8 @@ public class ChangesImpl implements Changes {
         @Override
         public boolean isUndoable() {
 
-            for(Change c : changes) {
-                if(!c.isUndoable()) {
+            for (Change c : changes) {
+                if (!c.isUndoable()) {
                     return false;
                 }
             }
@@ -238,7 +266,7 @@ public class ChangesImpl implements Changes {
 
         @Override
         public void undo() {
-            for(int i = changes.size()-1; i > -1;i--) {
+            for (int i = changes.size() - 1; i > -1; i--) {
                 changes.get(i).undo();
             }
         }
@@ -249,7 +277,7 @@ public class ChangesImpl implements Changes {
         if (currentTransactionStartIndex < unmodifiableAll.size()) {
             transactions.add(new TransactionImpl(
                     unmodifiableAll.subList(
-                        currentTransactionStartIndex, all.size()
+                            currentTransactionStartIndex, all.size()
                     ))
             );
             currentTransactionStartIndex = unmodifiableAll.size();
@@ -266,7 +294,7 @@ public class ChangesImpl implements Changes {
 
         recording = false;
 
-        unregisterChangeListener(model,objListener);
+        unregisterChangeListener(model, objListener);
 
         disableModelVersioning();
     }
@@ -292,7 +320,7 @@ public class ChangesImpl implements Changes {
 
         changeListeners.add(l);
 
-        return ()->changeListeners.remove(l);
+        return () -> changeListeners.remove(l);
     }
 
     @Override
@@ -303,13 +331,13 @@ public class ChangesImpl implements Changes {
     public void enableModelVersioning() {
 
         // unsubscribe previous listener
-        if(modelVersioningSubscription !=null) {
+        if (modelVersioningSubscription != null) {
             modelVersioningSubscription.unsubscribe();
             modelVersioningSubscription = null;
         }
 
         // register new listener
-        modelVersioningSubscription = addListener((change)-> {
+        modelVersioningSubscription = addListener((change) -> {
             timestamp = change.getTimestamp();
             modelVersionNumber.getAndIncrement();
 
@@ -321,12 +349,12 @@ public class ChangesImpl implements Changes {
 
     public void disableModelVersioning() {
 
-        if(recording) {
+        if (recording) {
             throw new RuntimeException("Cannot disable model versioning during change recording." +
                     " Call stop() before disabling model versioning.");
         }
 
-        if(modelVersioningSubscription !=null) {
+        if (modelVersioningSubscription != null) {
             modelVersioningSubscription.unsubscribe();
             modelVersioningSubscription = null;
         }

@@ -51,13 +51,25 @@ public interface Change {
      * Returns the property change (optional) which exists if this change affects a single property.
      * @return the property change (optional)
      */
-    Optional<PropertyChange> propertyChange();
+    default Optional<PropertyChange> propertyChange() {
+        return Optional.empty();
+    }
 
     /**
      * Returns the list change (optional) which exists if this change affects a list (list elements added, removed, etc.).
      * @return the list change (optional)
      */
-    Optional<VListChangeEvent<Object>> listChange();
+    default Optional<VListChangeEvent<Object>> listChange() {
+        return Optional.empty();
+    }
+
+    /**
+     * Returns the id change (optional) which exists if this change affects the id of an object.
+     * @return the id change (optional)
+     */
+    default Optional<IdChange> idChange() {
+        return Optional.empty();
+    }
 
     /**
      * Change Type
@@ -70,7 +82,11 @@ public interface Change {
         /**
          * Change affects a list.
          */
-        LIST
+        LIST,
+        /**
+         * Change affects the id of an instance.
+         */
+        ID
     }
 
     /**
