@@ -29,25 +29,5 @@ public interface VMF {
     default Changes changes() {
         throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
     }
-
-    /**
-     * TODO implement uniqueness guarantees.
-     *
-     * Returns the id of this object that has been assigned by VMF. The id can be used to identify and query objects
-     * within an object graph.
-     *
-     * <p>
-     *     <b>Note:</b> the uniqueness of this id is only guaranteed within an object graph. For objects that are
-     *     referenced from multiple object graphs, VMF will assign an id which is unique among those graphs. Cloned
-     *     and serialized graphs duplicate the ids of the clone source. However, cloned and deserialized graphs update
-     *     their id if they are added to another graph to prevent id collisions.
-     * </p>
-     *
-     * @return the id of this object that has been assigned by VMF
-     */
-    default String id() {
-        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
-    }
-    
     
 }

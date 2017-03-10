@@ -20,10 +20,10 @@ import java.util.stream.StreamSupport;
 @SuppressWarnings("deprecation")
 public class VIterator implements Iterator<VObject> {
 
-    private final Iterator<eu.mihosoft.vmf.runtime.core.internal.VObjectInternal> iterator;
+    private final VMFIterator iterator;
 
     private VIterator(
-            Iterator<eu.mihosoft.vmf.runtime.core.internal.VObjectInternal> iterator) {
+            VMFIterator iterator) {
         this.iterator = iterator;
     }
 
@@ -34,7 +34,14 @@ public class VIterator implements Iterator<VObject> {
 
     @Override
     public VObject next() {
-        return iterator.next();
+        VObject result = iterator.next();
+
+        // exit last element
+        if(!iterator.hasNext()) {
+            iterator.onExit(result);
+        }
+
+        return result;
     }
 
     /**
@@ -60,7 +67,7 @@ public class VIterator implements Iterator<VObject> {
     public static VIterator of(VObject root) {
         return new VIterator(
                 new VMFIterator(
-                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, IterationStrategy.UNIQUE_NODE)
+                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, null, IterationStrategy.UNIQUE_NODE)
         );
     }
 
@@ -75,7 +82,23 @@ public class VIterator implements Iterator<VObject> {
     public static VIterator of(VObject root, IterationStrategy iterationStrategy) {
         return new VIterator(
                 new VMFIterator(
-                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, iterationStrategy)
+                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, null, iterationStrategy)
+        );
+    }
+
+    /**
+     * Returns an iterator that iterates over the specified object graph using
+     * the specified iteration strategy
+     *
+     * @param root object graph to iterate
+     * @param tl traversal listener
+     * @param iterationStrategy iteration strategy
+     * @return an iterator that iterates over the specified object graph
+     */
+    public static VIterator of(VObject root, TraversalListener tl, IterationStrategy iterationStrategy) {
+        return new VIterator(
+                new VMFIterator(
+                        (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) root, tl, iterationStrategy)
         );
     }
 
@@ -114,9 +137,11 @@ class VMFIterator
             = new IdentityHashMap<>();
 
     private eu.mihosoft.vmf.runtime.core.internal.VObjectInternal first;
-    private Iterator<VObject> currentIterator;
+    private VObjectIterator currentIterator;
 
-    private final Stack<Iterator> iteratorStack = new Stack<>();
+    private final Stack<VObjectIterator> iteratorStack = new Stack<>();
+
+    private final TraversalListener traversalListener;
 
     private final VIterator.IterationStrategy strategy;
 
@@ -128,8 +153,10 @@ class VMFIterator
 
     public VMFIterator(
             eu.mihosoft.vmf.runtime.core.internal.VObjectInternal root,
+            TraversalListener tl,
             VIterator.IterationStrategy strategy) {
         first = root;
+        traversalListener = tl;
         currentIterator = new VMFPropertyIterator(identityMap, root, strategy);
         this.strategy = strategy;
     }
@@ -153,6 +180,9 @@ class VMFIterator
             n = first;
             identityMap.put(n, null);
             first = null;
+
+            onEnter(n);
+
         } else {
             // obtain next element from current iterator
             n = (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) getCurrentIterator().next();
@@ -169,6 +199,7 @@ class VMFIterator
             if (!identityMap.containsKey(nIdentityObj)) {
                 identityMap.put(nIdentityObj, null);
                 iteratorStack.push(currentIterator);
+                onEnter(n);
                 currentIterator = new VMFPropertyIterator(
                         identityMap,
                         (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) n, strategy);
@@ -218,18 +249,20 @@ class VMFIterator
     }
 
     @SuppressWarnings("unchecked")
-    private Iterator<VObject> getCurrentIterator() {
+    private VObjectIterator getCurrentIterator() {
 
         if (currentIterator == null || !currentIterator.hasNext()) {
             if (isDebug()) {
-                System.out.println(" --> leaving current");
+                System.out.println(" --> leaving current + " + currentIterator.object());
             }
+
+            onExit(currentIterator.object());
 
             if (!iteratorStack.empty()) {
                 // obtain the last iterator that has been pushed
                 currentIterator = iteratorStack.pop();
             } else {
-                currentIterator = Collections.emptyIterator();
+                currentIterator = VObjectIterator.EMTPY_ITERATOR;
             }
 
             // if the current iterator does not have next elements and we
@@ -240,6 +273,18 @@ class VMFIterator
             }
         }
         return currentIterator;
+    }
+
+    void onEnter(VObject o) {
+        if(traversalListener==null && o !=null) return;
+
+        traversalListener.onEnter(o);
+    }
+
+    void onExit(VObject o) {
+        if(traversalListener==null && o !=null) return;
+
+        traversalListener.onExit(o);
     }
 
 }
@@ -253,7 +298,7 @@ class VMFIterator
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
 @SuppressWarnings("deprecation")
-class VMFPropertyIterator implements Iterator<VObject> {
+class VMFPropertyIterator implements VObjectIterator {
 
     // element's properties are visited
     private final eu.mihosoft.vmf.runtime.core.internal.VObjectInternal object;
@@ -488,6 +533,33 @@ class VMFPropertyIterator implements Iterator<VObject> {
     @Override
     public void remove() {
         // TODO remove object from object graph
-        Iterator.super.remove();
+        VObjectIterator.super.remove();
     }
+
+    @Override
+    public VObject object() {
+        return object;
+    }
+}
+
+interface VObjectIterator extends Iterator<VObject>{
+
+    static final VObjectIterator EMTPY_ITERATOR = new VObjectIterator() {
+        @Override
+        public VObject object() {
+            return null;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return false;
+        }
+
+        @Override
+        public VObject next() {
+            return null;
+        }
+    };
+
+    VObject object();
 }
