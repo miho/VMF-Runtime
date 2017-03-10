@@ -60,29 +60,20 @@ public class ChangesImpl implements Changes {
             @Override
             public void propertyChange(PropertyChangeEvent evt) {
 
-                if ("_vmf_id".equals(evt.getPropertyName())) {
-                    fireIdChangeIfPrevIdIsPresent((VObject) evt.getSource());
+                Change c = new PropChangeImpl((VObject) evt.getSource(), evt.getPropertyName(),
+                        evt.getOldValue(), evt.getNewValue());
 
-                } else {
-                    Change c = new PropChangeImpl((VObject) evt.getSource(), evt.getPropertyName(),
-                            evt.getOldValue(), evt.getNewValue());
+                fireChange(c);
 
-                    fireChange(c);
-
-                    if (evt.getNewValue() instanceof VObject) {
-                        VObject newObjectToObserve = (VObject) evt.getNewValue();
-                        registerChangeListener(newObjectToObserve, this);
-
-
-                        fireIdChangeIfPrevIdIsPresent(newObjectToObserve);
-                    }
-
-                    if (evt.getOldValue() instanceof VObject) {
-                        VObject objectToRemoveFromObservation = (VObject) evt.getOldValue();
-                        unregisterChangeListener(objectToRemoveFromObservation, this);
-                    }
+                if (evt.getNewValue() instanceof VObject) {
+                    VObject newObjectToObserve = (VObject) evt.getNewValue();
+                    registerChangeListener(newObjectToObserve, this);
                 }
 
+                if (evt.getOldValue() instanceof VObject) {
+                    VObject objectToRemoveFromObservation = (VObject) evt.getOldValue();
+                    unregisterChangeListener(objectToRemoveFromObservation, this);
+                }
             }
         };
 
@@ -97,30 +88,13 @@ public class ChangesImpl implements Changes {
         });
     }
 
-    private void fireIdChangeIfPrevIdIsPresent(VObject source) {
-        // fire id change if prevId is present
-        if(source instanceof VObjectInternal) {
-            VObjectInternal vObjInternal = (VObjectInternal) source;
-            if(vObjInternal._vmf_getPrevId()> -1) {
-
-                Change idChange = new IdChangeImpl((VObject) source,
-                        vObjInternal._vmf_getPrevId(), vObjInternal._vmf_getId());
-
-                fireChange(idChange);
-
-                // clear prevId
-                ((VObjectInternalModifiable)vObjInternal._vmf_getMutableObject())._vmf_resetPrevId();
-            }
-        }
-    }
-
     private void fireChange(Change c) {
 
         for (ChangeListener cl : changeListeners) {
             cl.onChange(c);
         }
 
-        if (recording && c.getType()!= Change.ChangeType.ID) {
+        if (recording) {
             all.add(c);
         }
     }
@@ -193,7 +167,6 @@ public class ChangesImpl implements Changes {
                                     e -> e instanceof VObjectInternal).
                                     map(e -> (VObjectInternal) e).forEach(v ->
                             {
-                                fireIdChangeIfPrevIdIsPresent(v);
                                 v.removePropertyChangeListener(objListener);
                                 registerChangeListener(v, objListener);
                                 subscriptions.add(

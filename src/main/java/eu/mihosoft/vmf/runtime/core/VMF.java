@@ -38,12 +38,14 @@ public interface VMF {
      *
      * <p>
      *     <b>Note:</b> the uniqueness of this id is only guaranteed within an object graph. For objects that are
-     *     referenced from multiple object graphs, VMF will assign an id which is unique among those graphs.
+     *     referenced from multiple object graphs, VMF will assign an id which is unique among those graphs. Cloned
+     *     and serialized graphs duplicate the ids of the clone source. However, cloned and deserialized graphs update
+     *     their id if they are added to another graph to prevent id collisions.
      * </p>
      *
      * @return the id of this object that has been assigned by VMF
      */
-    default long id() {
+    default String id() {
         throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
     }
     

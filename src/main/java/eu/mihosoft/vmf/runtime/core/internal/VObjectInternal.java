@@ -89,40 +89,6 @@ public interface VObjectInternal extends VObject, ObservableObject {
     }
 
     /**
-     * Returns the id of this instance.
-     * @return the id of this instance
-     */
-    default long _vmf_getId() {
-        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
-    }
-
-    /**
-     * Returns the previous id of this instance.
-     * @return the previous id of this instance
-     */
-    default long _vmf_getPrevId() {
-        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
-    }
-
-    /**
-     * Requests a new id.
-     * @return a new id
-     */
-    static long newId() {
-        return currentId.getAndIncrement();
-    }
-
-    /**
-     * The current id.
-     */
-    static final AtomicLong currentId = new AtomicLong(0);
-
-    /**
-     * Finds a unique id among graphs that reference this instance.
-     */
-    void _vmf_findUniqueId();
-
-    /**
      * @return objects that reference this object
      */
     List<VObject> _vmf_referencedBy();
@@ -132,18 +98,4 @@ public interface VObjectInternal extends VObject, ObservableObject {
      */
     List<VObject> _vmf_references();
 
-    /**
-     * Enables unique id generation (default).
-     */
-    void _vmf_enableUniqueIdUpdate();
-    /**
-     * Disables unique id generation (only use it for clone/serialization).
-     */
-    void _vmf_disableUniqueIdUpdate();
-
-    /**
-     * Indicates whether unique id update/generation is enabled.
-     * @return {@code true} if unique id update/generation is enabled; {@code false} otherwise
-     */
-    boolean _vmf_isUniqueIdUpdateEnabled();
 }

@@ -64,14 +64,6 @@ public interface Change {
     }
 
     /**
-     * Returns the id change (optional) which exists if this change affects the id of an object.
-     * @return the id change (optional)
-     */
-    default Optional<IdChange> idChange() {
-        return Optional.empty();
-    }
-
-    /**
      * Change Type
      */
     enum ChangeType {
@@ -82,11 +74,7 @@ public interface Change {
         /**
          * Change affects a list.
          */
-        LIST,
-        /**
-         * Change affects the id of an instance.
-         */
-        ID
+        LIST
     }
 
     /**
