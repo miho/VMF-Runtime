@@ -178,7 +178,9 @@ class VMFIterator
         // visit first/root element if not visited already
         if (first != null) {
             n = first;
-            identityMap.put(n, null);
+            if (!(first instanceof Immutable)) {
+                identityMap.put(n, null);
+            }
             first = null;
 
             onEnter(n);
@@ -197,7 +199,9 @@ class VMFIterator
 
             // visit properties of n if not already visited
             if (!identityMap.containsKey(nIdentityObj)) {
-                identityMap.put(nIdentityObj, null);
+                if (!(nIdentityObj instanceof Immutable)) {
+                    identityMap.put(nIdentityObj, null);
+                }
                 iteratorStack.push(currentIterator);
                 onEnter(n);
                 currentIterator = new VMFPropertyIterator(
@@ -222,6 +226,13 @@ class VMFIterator
      * @return object that can be used for identity comparison
      */
     static Object unwrapIfReadOnlyInstanceForIdentityCheck(Object o) {
+
+        // nothing to do:
+        // is an immutable type and doesn't have to be unwrapped since it is never
+        // added to the identity map
+        if (o instanceof Immutable) {
+            return o;
+        }
 
         // nothing to do:
         // can't be a read-only instance and is definitely no model type instance
