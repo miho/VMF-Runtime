@@ -17,7 +17,7 @@ public interface Content {
 
     /**
      * Returns an iterator that traverses the object graph (depth first)
-     * using the {@link VIterator.IterationStrategy#UNIQUE_EDGE} iteration strategy.
+     * using the {@link VIterator.IterationStrategy#UNIQUE_PROPERTY} iteration strategy.
      * @return an iterator that traverses the object graph
      */
     Iterator<VObject> iterator();
@@ -32,7 +32,7 @@ public interface Content {
 
     /**
      * Returns a stream that contains all elements of the object graph (depth first)
-     * using the {@link VIterator.IterationStrategy#UNIQUE_EDGE} iteration strategy.
+     * using the {@link VIterator.IterationStrategy#UNIQUE_PROPERTY} iteration strategy.
      * @return a stream that contains all elements of the object graph
      */
     Stream<VObject> stream();

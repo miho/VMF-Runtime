@@ -24,8 +24,8 @@ public class ChangesImpl implements Changes {
     private final VList<ChangeListener> changeListeners = VList.newInstance(new ArrayList<>());
 
     private final VList<Change> all = VList.newInstance(new ArrayList<>());
-    private final VList<Change> unmodifiableAll =
-            VMappedList.newInstance(all, (e) -> e,
+    private final VList<Change> unmodifiableAll
+            = VMappedList.newInstance(all, (e) -> e,
                     (e) -> {
                         throw new UnsupportedOperationException("List modification not supported!");
                     });
@@ -33,9 +33,9 @@ public class ChangesImpl implements Changes {
             = VList.newInstance(new ArrayList<>());
     private final VList<Transaction> unmodifiableTransactions
             = VMappedList.newInstance(transactions, (e) -> e,
-            (e) -> {
-                throw new UnsupportedOperationException("List modification not supported!");
-            });
+                    (e) -> {
+                        throw new UnsupportedOperationException("List modification not supported!");
+                    });
     private int currentTransactionStartIndex = 0;
 
     private VObject model;
@@ -103,7 +103,6 @@ public class ChangesImpl implements Changes {
         this.model = model;
     }
 
-
     @Override
     public void start() {
 
@@ -165,17 +164,17 @@ public class ChangesImpl implements Changes {
 
                             evt.added().elements().stream().filter(
                                     e -> e instanceof VObjectInternal).
-                                    map(e -> (VObjectInternal) e).forEach(v ->
-                            {
-                                v.removePropertyChangeListener(objListener);
-                                registerChangeListener(v, objListener);
-                                subscriptions.add(
-                                        () -> v.removePropertyChangeListener(objListener));
-                            });
+                            map(e -> (VObjectInternal) e).forEach(v
+                            -> {
+                        v.removePropertyChangeListener(objListener);
+                        registerChangeListener(v, objListener);
+                        subscriptions.add(
+                                () -> v.removePropertyChangeListener(objListener));
+                    });
                             evt.removed().elements().stream().
-                                    filter(e -> e instanceof VObject).
-                                    map(e -> (VObject) e).
-                                    forEach(v -> unregisterChangeListener(v, objListener));
+                            filter(e -> e instanceof VObject).
+                            map(e -> (VObject) e).
+                            forEach(v -> unregisterChangeListener(v, objListener));
                         }
                 );
 
@@ -206,19 +205,20 @@ public class ChangesImpl implements Changes {
     public void startTransaction() {
 
         if (!recording) {
-            throw new RuntimeException("Please call 'start()' before starting a transaction.");
+            throw new RuntimeException("Please call 'start()' before starting"
+                    + " a transaction.");
         }
 
         currentTransactionStartIndex = all.size();
     }
 
     static class TransactionImpl implements Transaction {
+
         private final List<Change> changes;
 
         public TransactionImpl(List<Change> changes) {
             this.changes = changes;
         }
-
 
         @Override
         public List<Change> changes() {
@@ -314,7 +314,8 @@ public class ChangesImpl implements Changes {
             timestamp = change.getTimestamp();
             modelVersionNumber.getAndIncrement();
 
-            modelVersion = new ModelVersionImpl(timestamp, modelVersionNumber.get());
+            modelVersion = new ModelVersionImpl(
+                    timestamp, modelVersionNumber.get());
         });
 
         this.modelVersioningEnabled = true;
@@ -323,8 +324,9 @@ public class ChangesImpl implements Changes {
     public void disableModelVersioning() {
 
         if (recording) {
-            throw new RuntimeException("Cannot disable model versioning during change recording." +
-                    " Call stop() before disabling model versioning.");
+            throw new RuntimeException("Cannot disable model versioning during"
+                    + " change recording."
+                    + " Call stop() before disabling model versioning.");
         }
 
         if (modelVersioningSubscription != null) {
@@ -335,6 +337,7 @@ public class ChangesImpl implements Changes {
         this.modelVersioningEnabled = false;
     }
 
+    @Override
     public boolean isModelVersioningEnabled() {
         return modelVersioningEnabled;
     }

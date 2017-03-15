@@ -23,7 +23,8 @@ public interface Changes {
     Subscription addListener(ChangeListener l);
 
     /**
-     * Starts recording changes. Previously recorded changes will be removed (also removes transactions).
+     * Starts recording changes. Previously recorded changes will be removed
+     * (also removes transactions).
      */
     void start();
 
@@ -44,14 +45,20 @@ public interface Changes {
     void stop();
 
     /**
-     * Returns all changes to the model (observable collection).
+     * Returns all changes to the model (observable collection) that were
+     * recorded since the last {@link eu.mihosoft.vmf.runtime.core.Changes#start()
+     * } call.
      *
-     * @return all changes to the model (observable collection)
+     * @return all changes to the model (observable collection) that were
+     * recorded since the last {@link eu.mihosoft.vmf.runtime.core.Changes#start()
+     * } call
      */
     VList<Change> all();
 
     /**
-     * Returns all model transactions (observable collection).
+     * Returns all model transactions (observable collection) that were
+     * published since the last {@link eu.mihosoft.vmf.runtime.core.Changes#start()
+     * } call.
      *
      * @return ll model transactions (observable collection)
      */
@@ -72,8 +79,8 @@ public interface Changes {
     /**
      * Indicates whether model versioning is enabled.
      *
-     * @return {@code true} if model versioning is enabled; {@code false} otherwise
+     * @return {@code true} if model versioning is enabled; {@code false}
+     * otherwise
      */
     boolean isModelVersioningEnabled();
 }
-
