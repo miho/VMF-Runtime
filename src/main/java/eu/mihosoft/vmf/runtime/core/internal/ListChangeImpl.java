@@ -10,7 +10,7 @@ import eu.mihosoft.vmf.runtime.core.Change;
 import eu.mihosoft.vmf.runtime.core.PropertyChange;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
-import javax.observer.collection.CollectionChangeEvent;
+import vjavax.observer.collection.CollectionChangeEvent;
 import java.util.Optional;
 
 /**

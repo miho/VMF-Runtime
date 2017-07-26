@@ -11,7 +11,7 @@ import eu.mihosoft.vcollections.VListChangeEvent;
 import eu.mihosoft.vmf.runtime.core.internal.VObjectInternal;
 import eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable;
 
-import javax.observer.collection.CollectionChangeEvent;
+import vjavax.observer.collection.CollectionChangeEvent;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;

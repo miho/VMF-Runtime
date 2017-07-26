@@ -7,7 +7,7 @@ package eu.mihosoft.vmf.runtime.core;
 
 import eu.mihosoft.vcollections.VList;
 
-import javax.observer.Subscription;
+import vjavax.observer.Subscription;
 
 /**
  * @author Michael Hoffer (info@michaelhoffer.de)

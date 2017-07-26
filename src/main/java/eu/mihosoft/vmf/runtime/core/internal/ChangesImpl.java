@@ -7,7 +7,7 @@ import eu.mihosoft.vcollections.VList;
 import eu.mihosoft.vcollections.VMappedList;
 import eu.mihosoft.vmf.runtime.core.*;
 
-import javax.observer.Subscription;
+import vjavax.observer.Subscription;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.util.*;
