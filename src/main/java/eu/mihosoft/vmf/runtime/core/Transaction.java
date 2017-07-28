@@ -8,6 +8,7 @@ package eu.mihosoft.vmf.runtime.core;
 import java.util.List;
 
 /**
+ * A collection of changes. Transactions can be used to describe
  *
  * @author Michael Hoffer (info@michaelhoffer.de)
  */

@@ -1,5 +1,10 @@
 package eu.mihosoft.vmf.runtime.core;
 
+/**
+ * VMF base class.
+ *
+ * @author Michael Hoffer (info@michaelhoffer.de)
+ */
 public interface VObject {
     //static T newInstance();
 

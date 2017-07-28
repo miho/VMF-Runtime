@@ -10,12 +10,15 @@ import eu.mihosoft.vcollections.VList;
 import vjavax.observer.Subscription;
 
 /**
+ * Contains change related functionality of this object graph.
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
 public interface Changes {
 
     /**
-     * Adds the specified change listener.
+     * Adds the specified change listener. Listeners will be notified about changes regardless
+     * of whether change recording is enabled. This allows to react to and/or undo specific
+     * changes without the overhead of storing all previous events in a collection.
      *
      * @param l the listener to add
      * @return a subscription which allows to unsubscribe the specified listener
@@ -25,22 +28,28 @@ public interface Changes {
     /**
      * Starts recording changes. Previously recorded changes will be removed
      * (also removes transactions).
+     * @see Changes#stop()
      */
     void start();
 
     /**
      * Starts a new transaction.
+     * @see Transaction
+     * @see Changes#publishTransaction()
      */
     void startTransaction();
 
     /**
      * Publishes a transaction that consists of all changes since the last
      * {@code startTransaction()} or {@code publishTransaction()} call.
+     * @see Transaction
+     * @see Changes#startTransaction()
      */
     void publishTransaction();
 
     /**
      * Stops recording changes. Unpublished transactions will be published.
+     * @see Changes#start()
      */
     void stop();
 
@@ -60,7 +69,7 @@ public interface Changes {
      * published since the last {@link eu.mihosoft.vmf.runtime.core.Changes#start()
      * } call.
      *
-     * @return ll model transactions (observable collection)
+     * @return all model transactions (observable collection)
      */
     VList<Transaction> transactions();
 

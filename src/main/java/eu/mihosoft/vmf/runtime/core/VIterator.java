@@ -13,7 +13,7 @@ import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 /**
- * Iterator that an iterates over the specified object graph.
+ * Iterator that iterates over the specified object graph.
  *
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
