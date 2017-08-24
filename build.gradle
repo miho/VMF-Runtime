@@ -1,5 +1,7 @@
+import java.text.SimpleDateFormat
+
 plugins {
-//    id 'com.github.hierynomus.license' version '0.13.1'
+    id 'com.github.hierynomus.license' version '0.14.0'
     id 'maven-publish'
     id 'net.nemerosa.versioning' version '2.4.0'
     id 'com.jfrog.bintray' version '1.7.2'
@@ -39,6 +41,21 @@ dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.10'
     compile group: 'eu.mihosoft.vcollections', name: 'vcollections', version: '0.2.0'
     compile group: 'eu.mihosoft.vcollections', name: 'vcollections', version: '0.2.0', classifier: 'sources'
+}
+
+license {
+    header = rootProject.file('config/HEADER')
+    strictCheck = true
+    ignoreFailures = true
+    mapping {
+        java   = 'SLASHSTAR_STYLE'
+        groovy = 'SLASHSTAR_STYLE'
+        fxml   = 'XML_STYLE'
+    }
+    ext.yearSince1   = '2016'
+    ext.yearCurrent  = new SimpleDateFormat("yyyy").format(new Date())
+    ext.author1 = 'Michael Hoffer <info@michaelhoffer.de>'
+    exclude '**/*.svg'
 }
 
 
