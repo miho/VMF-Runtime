@@ -170,7 +170,7 @@ public class ChangesImpl implements Changes {
 
     @SuppressWarnings({"deprecation", "unchecked"})
     private void addListListenersToPropertiesOf(VObject object, PropertyChangeListener objListener) {
-        VObjectInternalModifiable internalModel = (VObjectInternalModifiable) object;
+        VObjectInternal internalModel = (VObjectInternal) object;
         for (int i = 0; i < internalModel._vmf_getPropertyTypes().length; i++) {
             int type = internalModel._vmf_getPropertyTypes()[i];
             if (type == -2) {
@@ -208,7 +208,7 @@ public class ChangesImpl implements Changes {
 
     @SuppressWarnings({"deprecation", "unchecked"})
     private void removeListListenersFromPropertiesOf(VObject object, PropertyChangeListener objListener) {
-        VObjectInternalModifiable internalModel = (VObjectInternalModifiable) object;
+        VObjectInternal internalModel = (VObjectInternal) object;
         for (int i = 0; i < internalModel._vmf_getPropertyTypes().length; i++) {
             int type = internalModel._vmf_getPropertyTypes()[i];
             if (type == -2) {
