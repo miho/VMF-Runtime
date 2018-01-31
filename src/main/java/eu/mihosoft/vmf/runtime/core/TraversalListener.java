@@ -48,6 +48,13 @@ public interface TraversalListener {
     void onExit(VObject o);
 
     /**
+     * Indicates whether {@code null} objects are ignored.
+     *
+     * @return {@code true} if {@code null} objects are ignored; {@code false} otherwise
+     */
+    default boolean isIgnoreNullObjects() { return true; }
+
+    /**
      * Traverses the specified object graph with the default strategy.
      *
      * @param o object graph to be traversed

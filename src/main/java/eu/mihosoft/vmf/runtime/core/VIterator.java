@@ -309,13 +309,13 @@ class VMFIterator
     }
 
     void onEnter(VObject o) {
-        if(traversalListener==null || o ==null) return;
+        if(traversalListener==null || (traversalListener.isIgnoreNullObjects() && o == null) ) return;
 
         traversalListener.onEnter(o);
     }
 
     void onExit(VObject o) {
-        if(traversalListener==null || o ==null) return;
+        if(traversalListener==null || (traversalListener.isIgnoreNullObjects() && o == null) ) return;
 
         traversalListener.onExit(o);
     }
