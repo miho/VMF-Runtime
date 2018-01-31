@@ -75,23 +75,36 @@ class ListChangeImpl implements Change {
 
     @Override
     @SuppressWarnings("unchecked")
+    public void apply(VObject obj) {
+
+        VObjectInternalModifiable internal = (VObjectInternalModifiable) object;
+        int propId = internal._vmf_getPropertyIdByName(propertyName);
+        VList list = (VList) internal._vmf_getPropertyValueById(propId);
+        if(evt.wasSet()) {
+            if (evt.added().indices().length == list.size()) {
+                list.setAll(evt.added().indices()[0], evt.added().elements());
+            }
+        } else if (evt.wasAdded()) {
+            list.addAll(evt.added().indices(), evt.added().elements());
+        } else if(evt.wasRemoved()) {
+            list.removeAll(evt.removed().indices());
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
     public void undo() {
 
         if (!isUndoable()) return;
 
         if (evt.wasSet()) {
-//            System.out.println("SET");
             if (evt.removed().indices().length == list.size()) {
                 list.setAll(evt.removed().indices()[0], evt.removed().elements());
             }
         } else if (evt.wasAdded()) {
-//            System.out.println("ADD: " + evt.added().elements().get(0));
             list.removeAll(evt.added().indices());
-//            System.out.println("ADD-DONE");
         } else if(evt.wasRemoved()) {
-//            System.out.println("REM" + evt.added().elements().get(0));
             list.addAll(evt.removed().indices(),evt.removed().elements());
-//            System.out.println("REM-DONE");
         }
 
     }

@@ -64,6 +64,12 @@ public interface Change {
     void undo();
 
     /**
+     * Applies this change to the specified object.
+     * @param obj target object affected by this change
+     */
+    void apply(VObject obj);
+
+    /**
      * Indicates whether this change can be reverted.
      * @return {@code true} if this change can be reverted; {@code false} otherwise
      */

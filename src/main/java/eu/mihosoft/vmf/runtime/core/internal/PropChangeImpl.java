@@ -74,6 +74,15 @@ class PropChangeImpl implements Change, PropertyChange {
         return newValue;
     }
 
+    @Override
+    @SuppressWarnings({"deprecation", "unchecked"})
+    public void apply(VObject obj) {
+        VObjectInternalModifiable internal = (VObjectInternalModifiable) obj;
+        int propId = internal._vmf_getPropertyIdByName(propertyName);
+
+        internal._vmf_setPropertyValueById(propId, newValue);
+    }
+
     @SuppressWarnings("deprecation")
     public void undo() {
         if (!isUndoable()) return;
