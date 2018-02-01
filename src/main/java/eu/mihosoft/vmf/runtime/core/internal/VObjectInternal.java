@@ -25,6 +25,7 @@
  */
 package eu.mihosoft.vmf.runtime.core.internal;
 
+import eu.mihosoft.vcollections.VList;
 import eu.mihosoft.vmf.runtime.core.ObservableObject;
 import eu.mihosoft.vmf.runtime.core.VObject;
 
@@ -113,11 +114,12 @@ public interface VObjectInternal extends VObject, ObservableObject {
     /**
      * @return objects that reference this object
      */
-    List<VObject> _vmf_referencedBy();
+    VList<VObject> _vmf_referencedBy();
 
     /**
      * @return objects that are referenced by this object
      */
-    List<VObject> _vmf_references();
+    VList<VObject> _vmf_references();
+
 
 }

@@ -27,6 +27,8 @@
  */
 package eu.mihosoft.vmf.runtime.core;
 
+import eu.mihosoft.vcollections.VList;
+
 import java.util.Iterator;
 import java.util.stream.Stream;
 
@@ -75,6 +77,31 @@ public interface Content {
      * @return a stream of type <T>, i.e. {@code Stream<T>}
      */
     <T extends VObject> Stream<T> stream(Class<T> type);
+
+    /**
+     * Returns a stream that contains all elements of the object graph (depth first) that implement/extend the
+     * specified type. It maps all elements to the specified type, i.e. returns {@code Stream<T>} using the specified
+     * iteration strategy.
+     * @param type type for filtering and mapping
+     * @param strategy iteration strategy
+     * @param <T> element type
+     * @return a stream of type <T>, i.e. {@code Stream<T>}
+     */
+    <T extends VObject> Stream<T> stream(Class<T> type, VIterator.IterationStrategy strategy);
+
+    /**
+     * Returns an unmodifiable list of all objects that reference this object.
+     *
+     * @return an unmodifiable list of all objects that reference this object
+     */
+    VList<VObject> referencedBy();
+
+    /**
+     * Returns an unmodifiable list of all objects that are referenced by this object.
+     *
+     * @return an unmodifiable list of all objects that are referenced by this object.
+     */
+    VList<VObject> references();
     
     /**
      * Returns a deep copy of this object.
