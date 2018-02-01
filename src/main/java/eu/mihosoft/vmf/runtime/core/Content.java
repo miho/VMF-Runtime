@@ -66,6 +66,15 @@ public interface Content {
      * @return a stream that contains all elements of the object graph
      */
     Stream<VObject> stream(VIterator.IterationStrategy strategy);
+
+    /**
+     * Returns a stream that contains all elements of the object graph (depth first) that implement/extend the
+     * specified type. It maps all elements to the specified type, i.e. returns {@code Stream<T>}.
+     * @param type type for filtering and mapping
+     * @param <T> element type
+     * @return a stream of type <T>, i.e. {@code Stream<T>}
+     */
+    <T extends VObject> Stream<T> stream(Class<T> type);
     
     /**
      * Returns a deep copy of this object.
