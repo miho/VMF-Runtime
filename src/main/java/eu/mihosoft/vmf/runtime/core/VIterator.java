@@ -28,6 +28,7 @@
 package eu.mihosoft.vmf.runtime.core;
 
 import eu.mihosoft.vcollections.VList;
+import eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -47,6 +48,15 @@ public class VIterator implements Iterator<VObject> {
     private VIterator(
             VMFIterator iterator) {
         this.iterator = iterator;
+    }
+
+    /**
+     * Replaces the last element returned by {@link #next()} with the specified object.
+     *
+     * @param o object to set
+     */
+    public void set(VObject o) {
+        iterator.set(o);
     }
 
     @Override
@@ -160,6 +170,8 @@ class VMFIterator
 
     private eu.mihosoft.vmf.runtime.core.internal.VObjectInternal first;
     private VObjectIterator currentIterator;
+    private VObjectIterator prevIterator;
+    private boolean usedCurrentIterator;
 
     private final Stack<VObjectIterator> iteratorStack = new Stack<>();
 
@@ -225,10 +237,12 @@ class VMFIterator
                     identityMap.put(nIdentityObj, null);
                 }
                 iteratorStack.push(currentIterator);
+                prevIterator = currentIterator;
                 onEnter(n);
                 currentIterator = new VMFPropertyIterator(
                         identityMap,
                         (eu.mihosoft.vmf.runtime.core.internal.VObjectInternal) n, strategy);
+                usedCurrentIterator = false;
             }
         }
 
@@ -236,7 +250,7 @@ class VMFIterator
     }
 
     /**
-     * Unwraps the mutable instance if a read-only instance has been specified.
+     * Unwraps the mutable instance if a specified read-only instance.
      * <b>Note:</b> this method is not intended to weaken the write protection
      * of read-only instances. Its sole purpose is to return an instance that
      * can be used for identity equality checks. Since identity is not
@@ -278,7 +292,33 @@ class VMFIterator
 
     @Override
     public void remove() {
-        Iterator.super.remove();
+
+        if(first!=null) {
+            throw new RuntimeException("Cannot remove first object (root) of this object tree");
+        }
+
+        if(usedCurrentIterator) {
+            getCurrentIterator().remove();
+        } else if(prevIterator!=null) {
+            prevIterator.remove();
+        } else {
+            throw new RuntimeException("Cannot remove element (please submit a bug report)");
+        }
+    }
+
+    public void set(VObject o) {
+
+        if(first!=null) {
+            throw new RuntimeException("Cannot replace first object (root) of this object tree");
+        }
+
+        if(usedCurrentIterator) {
+            getCurrentIterator().set(o);
+        } else if(prevIterator!=null) {
+            prevIterator.set(o);
+        } else {
+            throw new RuntimeException("Cannot replace element (please submit a bug report)");
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -340,7 +380,7 @@ class VMFPropertyIterator implements VObjectIterator {
     private int index = -1;
 
     // list iterator that is used for properties that consists of lists
-    private Iterator<VObject> listIterator;
+    private ListIterator<VObject> listIterator;
 
     // identity map that contains already visited elements
     private final IdentityHashMap<Object, Object> identityMap;
@@ -389,7 +429,7 @@ class VMFPropertyIterator implements VObjectIterator {
         // if there's a list iterator then we get elements from the list
         // before visiting next property elements
         if (listIterator != null) {
-            hasNext = listIterator.hasNext();
+            hasNext = hasNextListElement();
 
             if (hasNext) {
                 return true;
@@ -406,13 +446,7 @@ class VMFPropertyIterator implements VObjectIterator {
         }
         
         // property indices (with or without pure references)
-        int[] properties;
-        if(strategy == VIterator.IterationStrategy.CONTAINMENT_TREE) {
-            properties = object._vmf_getChildrenIndices();
-        } else {
-            properties = object.
-                _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes();
-        }
+        int[] properties = getPropIndices();
 
         // number of properties that are not external types
         int numProperties = properties.length;
@@ -504,7 +538,7 @@ class VMFPropertyIterator implements VObjectIterator {
             if (VMFIterator.isDebug()) {
                 System.out.println("  --> using list at " + index);
             }
-            return listIterator.next();
+            return nextListElement();
         }
 
         index++;
@@ -514,13 +548,7 @@ class VMFPropertyIterator implements VObjectIterator {
         }
         
          // property indices (with or without pure references)
-        int[] properties;
-        if(strategy == VIterator.IterationStrategy.CONTAINMENT_TREE) {
-            properties = object._vmf_getChildrenIndices();
-        } else {
-            properties = object.
-                _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes();
-        }
+        int[] properties = getPropIndices();
 
         int propIndex = properties[index];
         Object o = object._vmf_getPropertyValueById(propIndex);
@@ -530,24 +558,18 @@ class VMFPropertyIterator implements VObjectIterator {
             o = next();
         }
 
-        Predicate<Object> hasNextFilter;
-
-        if (strategy == VIterator.IterationStrategy.UNIQUE_NODE) {
-            hasNextFilter = e -> !identityMap.containsKey(
-                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e));
-        } else {
-            // we don't prevent multiple visits
-            hasNextFilter = e -> true;
-        }
-
         // iterating through list
         if (o instanceof VList) {
-            listIterator = ((VList<VObject>) o).stream().filter(e -> e != null).
-                    filter(hasNextFilter).iterator();
+            //listIterator = ((VList<VObject>) o).stream().filter(e -> e != null).
+            //        filter(hasNextFilter).iterator();
+
+            listIterator = ((VList<VObject>) o).listIterator();
+
             if (VMFIterator.isDebug()) {
                 System.out.println("  --> switching to list at " + index);
             }
-            o = listIterator.next();
+
+            o = nextListElement();
         }
 
         if (strategy == VIterator.IterationStrategy.UNIQUE_NODE) {
@@ -563,10 +585,106 @@ class VMFPropertyIterator implements VObjectIterator {
         return (VObject) o;
     }
 
+    private VObject nextListElement() {
+        VObject o = null;
+        Predicate<Object> hasNextFilter;
+
+        if (strategy == VIterator.IterationStrategy.UNIQUE_NODE) {
+            hasNextFilter = e -> !identityMap.containsKey(
+                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e));
+        } else {
+            // we don't prevent multiple visits
+            hasNextFilter = e -> true;
+        }
+
+        while(listIterator.hasNext() && (o == null||!hasNextFilter.test(o))) {
+            o = listIterator.next();
+        }
+        return o;
+    }
+
+    private boolean hasNextListElement() {
+
+        if(!listIterator.hasNext()) return false;
+
+        Predicate<Object> hasNextFilter;
+
+        if (strategy == VIterator.IterationStrategy.UNIQUE_NODE) {
+            hasNextFilter = e -> !identityMap.containsKey(
+                    VMFIterator.unwrapIfReadOnlyInstanceForIdentityCheck(e));
+        } else {
+            // we don't prevent multiple visits
+            hasNextFilter = e -> true;
+        }
+
+        // look ahead ..
+        Object o = listIterator.next();
+        //.. and go back
+        listIterator.previous();
+
+        if(o==null) return false;
+
+        return hasNextFilter.test(o);
+    }
+
+    private int[] getPropIndices() {
+        int[] properties;
+        if(strategy == VIterator.IterationStrategy.CONTAINMENT_TREE) {
+            properties = object._vmf_getChildrenIndices();
+        } else {
+            properties = object.
+                _vmf_getIndicesOfPropertiesWithModelTypeOrElementTypes();
+        }
+        return properties;
+    }
+
     @Override
     public void remove() {
-        // TODO remove object from object graph
-        VObjectIterator.super.remove();
+
+        if(object._vmf_isReadOnly()) {
+            throw new RuntimeException("Cannot modify unmodifiable object!");
+        }
+
+        if(listIterator!=null) {
+            listIterator.remove();
+        } else {
+            // property indices (with or without pure references)
+            int[] properties = getPropIndices();
+
+            if(index < 0 ) return;
+
+            int propIndex = properties[index];
+            if(object instanceof VObjectInternalModifiable) {
+                ((VObjectInternalModifiable)object)._vmf_setPropertyValueById(propIndex, null);
+            } else {
+                throw new RuntimeException("Cannot modify unmodifiable object!");
+            }
+        }
+    }
+
+    @Override
+    public void set(VObject o) {
+        if(object._vmf_isReadOnly()) {
+            throw new RuntimeException("Cannot modify unmodifiable object!");
+        }
+
+        if(listIterator!=null) {
+            listIterator.set(o);
+        } else {
+
+            System.out.println("0: " + index);
+            System.out.println("1: " + o);
+
+            // property indices (with or without pure references)
+            int[] properties = getPropIndices();
+            if(index < 0 ) return;
+            int propIndex = properties[index];
+            if(object instanceof VObjectInternalModifiable) {
+                ((VObjectInternalModifiable)object)._vmf_setPropertyValueById(propIndex, o);
+            } else {
+                throw new RuntimeException("Cannot modify unmodifiable object!");
+            }
+        }
     }
 
     @Override
@@ -592,7 +710,14 @@ interface VObjectIterator extends Iterator<VObject>{
         public VObject next() {
             return null;
         }
+
+        @Override
+        public void set(VObject o) {
+            // nothing to do
+        }
     };
 
     VObject object();
+
+    void set(VObject o);
 }

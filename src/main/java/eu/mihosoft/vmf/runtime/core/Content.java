@@ -44,7 +44,7 @@ public interface Content {
      * using the {@link VIterator.IterationStrategy#UNIQUE_PROPERTY} iteration strategy.
      * @return an iterator that traverses the object graph
      */
-    Iterator<VObject> iterator();
+    VIterator iterator();
 
     /**
      * Returns an iterator that traverses the object graph (depth first)
@@ -52,7 +52,7 @@ public interface Content {
      * @param strategy iteration strategy
      * @return an iterator that traverses the object graph
      */
-    Iterator<VObject> iterator(VIterator.IterationStrategy strategy);
+    VIterator iterator(VIterator.IterationStrategy strategy);
 
     /**
      * Returns a stream that contains all elements of the object graph (depth first)
