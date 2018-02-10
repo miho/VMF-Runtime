@@ -672,9 +672,6 @@ class VMFPropertyIterator implements VObjectIterator {
             listIterator.set(o);
         } else {
 
-            System.out.println("0: " + index);
-            System.out.println("1: " + o);
-
             // property indices (with or without pure references)
             int[] properties = getPropIndices();
             if(index < 0 ) return;
