@@ -59,6 +59,32 @@ public class VIterator implements Iterator<VObject> {
         iterator.set(o);
     }
 
+    /**
+     * Adds the specified object after the last element returned by {@link #next()}.
+     *
+     * <b>Note: </b> calling this method is only allowed if the current property is a list property. If this
+     * is not the case, this method will throw a {@link RuntimeException}.
+     *
+     * @param o object to add
+     *
+     * @see #isAddingSupported()
+     */
+    public void add(VObject o) {
+        iterator.add(o);
+    }
+
+    /**
+     * Indicates whether adding at the current iterator location is supported. This is only allowed if the current
+     * property is a list property.
+     *
+     * @return {@code true} if adding is supported; {@code false} otherwise
+     *
+     * @see #add(VObject)
+     */
+    public boolean isAddingSupported() {
+        return iterator.isAddingSupported();
+    }
+
     @Override
     public boolean hasNext() {
         return iterator.hasNext();
@@ -321,6 +347,35 @@ class VMFIterator
         }
     }
 
+    public void add(VObject o) {
+
+        if(first!=null) {
+            throw new RuntimeException("Cannot add object to the first object (root) of this object tree");
+        }
+
+        if(usedCurrentIterator) {
+            getCurrentIterator().add(o);
+        } else if(prevIterator!=null) {
+            prevIterator.add(o);
+        } else {
+            throw new RuntimeException("Cannot add element (please submit a bug report)");
+        }
+    }
+
+    /**
+     *
+     * @return
+     */
+    boolean isAddingSupported() {
+        if(usedCurrentIterator) {
+            return getCurrentIterator().isAddingSupported();
+        } else if(prevIterator!=null) {
+            return prevIterator.isAddingSupported();
+        }
+
+        return false;
+    }
+
     @SuppressWarnings("unchecked")
     private VObjectIterator getCurrentIterator() {
 
@@ -361,6 +416,7 @@ class VMFIterator
     }
 
 }
+
 
 /**
  * Iterates over the properties of a model object. Empty properties, non model
@@ -685,6 +741,24 @@ class VMFPropertyIterator implements VObjectIterator {
     }
 
     @Override
+    public void add(VObject o) {
+        if(object._vmf_isReadOnly()) {
+            throw new RuntimeException("Cannot modify unmodifiable object!");
+        }
+
+        if(listIterator!=null) {
+            listIterator.add(o);
+        } else {
+            throw new RuntimeException("Adding objects to non-list properties is not supported.");
+        }
+    }
+
+    @Override
+    public boolean isAddingSupported() {
+        return listIterator!=null;
+    }
+
+    @Override
     public VObject object() {
         return object;
     }
@@ -712,9 +786,23 @@ interface VObjectIterator extends Iterator<VObject>{
         public void set(VObject o) {
             // nothing to do
         }
+
+        @Override
+        public void add(VObject o) {
+            // nothing to do
+        }
+
+        @Override
+        public boolean isAddingSupported() {
+            return false;
+        }
     };
 
     VObject object();
 
     void set(VObject o);
+
+    void add(VObject o);
+
+    boolean isAddingSupported();
 }
