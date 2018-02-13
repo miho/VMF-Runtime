@@ -67,7 +67,7 @@ public class VIterator implements Iterator<VObject> {
      *
      * @param o object to add
      *
-     * @see #isAddingSupported()
+     * @see #isAddSupported()
      */
     public void add(VObject o) {
         iterator.add(o);
@@ -81,8 +81,8 @@ public class VIterator implements Iterator<VObject> {
      *
      * @see #add(VObject)
      */
-    public boolean isAddingSupported() {
-        return iterator.isAddingSupported();
+    public boolean isAddSupported() {
+        return iterator.isAddSupported();
     }
 
     @Override
@@ -366,11 +366,11 @@ class VMFIterator
      *
      * @return
      */
-    boolean isAddingSupported() {
+    boolean isAddSupported() {
         if(usedCurrentIterator) {
-            return getCurrentIterator().isAddingSupported();
+            return getCurrentIterator().isAddSupported();
         } else if(prevIterator!=null) {
-            return prevIterator.isAddingSupported();
+            return prevIterator.isAddSupported();
         }
 
         return false;
@@ -754,7 +754,7 @@ class VMFPropertyIterator implements VObjectIterator {
     }
 
     @Override
-    public boolean isAddingSupported() {
+    public boolean isAddSupported() {
         return listIterator!=null;
     }
 
@@ -793,7 +793,7 @@ interface VObjectIterator extends Iterator<VObject>{
         }
 
         @Override
-        public boolean isAddingSupported() {
+        public boolean isAddSupported() {
             return false;
         }
     };
@@ -804,5 +804,5 @@ interface VObjectIterator extends Iterator<VObject>{
 
     void add(VObject o);
 
-    boolean isAddingSupported();
+    boolean isAddSupported();
 }
