@@ -51,5 +51,13 @@ public interface VMF {
     default Changes changes() {
         throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
     }
+
+    /**
+     * Returns the reflection API of this object.
+     * @return the reflection API of this object
+     */
+    default Reflect reflect() {
+        throw new UnsupportedOperationException("FIXME: unsupported method invoked. This should not happen :(");
+    }
     
 }

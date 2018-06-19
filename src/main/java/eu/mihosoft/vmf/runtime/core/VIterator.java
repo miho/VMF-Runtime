@@ -28,7 +28,6 @@
 package eu.mihosoft.vmf.runtime.core;
 
 import eu.mihosoft.vcollections.VList;
-import eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable;
 
 import java.util.*;
 import java.util.function.Predicate;
@@ -45,8 +44,7 @@ public class VIterator implements Iterator<VObject> {
 
     private final VMFIterator iterator;
 
-    private VIterator(
-            VMFIterator iterator) {
+    private VIterator(VMFIterator iterator) {
         this.iterator = iterator;
     }
 
@@ -710,8 +708,8 @@ class VMFPropertyIterator implements VObjectIterator {
             if(index < 0 ) return;
 
             int propIndex = properties[index];
-            if(object instanceof VObjectInternalModifiable) {
-                ((VObjectInternalModifiable)object)._vmf_setPropertyValueById(propIndex, null);
+            if(object instanceof eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable) {
+                ((eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable)object)._vmf_setPropertyValueById(propIndex, null);
             } else {
                 throw new RuntimeException("Cannot modify unmodifiable object!");
             }
@@ -732,8 +730,8 @@ class VMFPropertyIterator implements VObjectIterator {
             int[] properties = getPropIndices();
             if(index < 0 ) return;
             int propIndex = properties[index];
-            if(object instanceof VObjectInternalModifiable) {
-                ((VObjectInternalModifiable)object)._vmf_setPropertyValueById(propIndex, o);
+            if(object instanceof eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable) {
+                ((eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable)object)._vmf_setPropertyValueById(propIndex, o);
             } else {
                 throw new RuntimeException("Cannot modify unmodifiable object!");
             }

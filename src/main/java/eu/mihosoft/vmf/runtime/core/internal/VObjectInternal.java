@@ -52,9 +52,15 @@ public interface VObjectInternal extends VObject, ObservableObject {
     public String[] _vmf_getPropertyNames();
 
     /**
-     * Returns the types of the properties defined in this type/object.
+     * Returns the type ids of the properties defined in this type/object.
      */
     public int[] _vmf_getPropertyTypes();
+
+    /**
+     * Returns the type names of the properties defined in this type/object.
+     */
+    public String[] _vmf_getPropertyTypeNames();
+
 
     /**
      * Returns values of properties by id (calls getter methods).
@@ -110,6 +116,29 @@ public interface VObjectInternal extends VObject, ObservableObject {
     default VObject _vmf_getMutableObject() {
         return this;
     }
+
+
+    /**
+     * Returns the default value of the specified property.
+     * @param propertyId id of the property
+     * @return the default value of the specified property
+     */
+    Object _vmf_getDefaultValueById(int propertyId);
+
+    /**
+     * Defines the default value for the specified property.
+     * @param propertyId id of the property
+     * @param defaultValue the default value to set
+     */
+    void _vmf_setDefaultValueById(int propertyId, Object defaultValue);
+
+    /**
+     * Determines whether the specified property is set.
+     * @param propertyId id of the property
+     * @return {@code true} if this property is set; {@code false} otherwise
+     */
+    boolean _vmf_isSetById(int propertyId);
+
 
     /**
      * @return objects that reference this object

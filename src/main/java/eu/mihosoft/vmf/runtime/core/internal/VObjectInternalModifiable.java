@@ -49,6 +49,13 @@ public interface VObjectInternalModifiable extends VObjectInternal {
      */
     void _vmf_setPropertyValueById(int propertyId, Object value);
 
+    /**
+     * Unsets the specified property.
+     *
+     * @param propertyId id of the property to unset
+     */
+    void _vmf_unsetById(int propertyId);
+
     default void setModelToChanges(Changes c) {
         ChangesImpl cImpl = (ChangesImpl) c;
         cImpl.setModel(this);

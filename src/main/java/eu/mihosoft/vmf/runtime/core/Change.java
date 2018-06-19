@@ -27,23 +27,18 @@
  */
 package eu.mihosoft.vmf.runtime.core;
 
-import eu.mihosoft.vcollections.VList;
-import eu.mihosoft.vcollections.VListChange;
-import eu.mihosoft.vcollections.VListChangeEvent;
-import eu.mihosoft.vmf.runtime.core.internal.VObjectInternal;
-import eu.mihosoft.vmf.runtime.core.internal.VObjectInternalModifiable;
 
-import vjavax.observer.collection.CollectionChangeEvent;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import eu.mihosoft.vcollections.VListChangeEvent;
+
 import java.util.Optional;
+
 
 /**
  * A model change.
  *
  * @author Michael Hoffer (info@michaelhoffer.de)
  */
+@SuppressWarnings("deprecation")
 public interface Change {
 
     /**
