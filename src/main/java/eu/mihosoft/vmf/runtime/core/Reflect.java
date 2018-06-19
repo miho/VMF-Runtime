@@ -25,8 +25,24 @@ package eu.mihosoft.vmf.runtime.core;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Reflection API of this object graph.
+ *
+ * @author Michael Hoffer (info@michaelhoffer.de)
+ */
 public interface Reflect {
+
+    /**
+     * Returns the list of properties of this object.
+     * @return the list of properties of this object
+     */
     List<Property> properties();
+
+    /**
+     * Returns the model property specified by name.
+     * @param name the model property specified by name
+     * @return the model property specified by name
+     */
     default Optional<Property> propertyByName(String name) {
         return properties().stream().filter(p->name.equals(p.getName())).findFirst();
     }

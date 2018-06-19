@@ -49,6 +49,7 @@ public final class Property {
         return parent._vmf_getPropertyValueById(propertyId);
     }
 
+    @Deprecated()
     public void setDefault(Object value) {
         if(parent instanceof VObjectInternalModifiable) {
             ((VObjectInternalModifiable)parent)._vmf_setDefaultValueById(propertyId, value);
