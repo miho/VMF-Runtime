@@ -39,7 +39,7 @@ public final class Property {
 
     public void unset() {
         if(parent instanceof VObjectInternalModifiable) {
-            ((VObjectInternalModifiable)parent)._vmf_setPropertyValueById(propertyId, getDefaultValue());
+            ((VObjectInternalModifiable)parent)._vmf_setPropertyValueById(propertyId, getDefault());
         } else {
             throw new RuntimeException("Cannot modify unmodifiable object");
         }
@@ -49,7 +49,7 @@ public final class Property {
         return parent._vmf_getPropertyValueById(propertyId);
     }
 
-    public void setDefaultValue(Object value) {
+    public void setDefault(Object value) {
         if(parent instanceof VObjectInternalModifiable) {
             ((VObjectInternalModifiable)parent)._vmf_setDefaultValueById(propertyId, value);
         } else {
@@ -57,7 +57,7 @@ public final class Property {
         }
     }
 
-    public Object getDefaultValue() {
+    public Object getDefault() {
         return parent._vmf_getDefaultValueById(propertyId);
     }
 
