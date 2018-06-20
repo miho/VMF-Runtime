@@ -2,6 +2,11 @@
 /.nb-gradle/
 /.idea/
 /build/
+/bin/
+/out/
+/.classpath
+/.project
+/.settings
 
 .dropbox.attr
 
