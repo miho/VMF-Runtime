@@ -9,5 +9,7 @@
 /.settings
 /.vscode/
 
+/VMF-Runtime.iml
+
 .dropbox.attr
 
